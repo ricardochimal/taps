@@ -32,11 +32,9 @@ post '/sessions/:key/:table' do
 	session = Session.filter(:key => params[:key]).first
 	stop 404 unless session
 
-	$connections ||= {}
-	$connections[session.key] ||= Sequel.connect(session.database_url)
-	db = $connections[session.key]
-
 	data = JSON.parse request.body.string
+
+	db = session.connection
 	table = db[params[:table].to_sym]
 
 	db.transaction do
@@ -51,10 +49,7 @@ get '/sessions/:key/:table' do
 	page = params[:page] || 1
 	chunk_size = 10
 
-	$connections ||= {}
-	$connections[session.key] ||= Sequel.connect(session.database_url)
-	db = $connections[session.key]
-
+	db = session.connection
 	table = db[params[:table].to_sym]
 	rows = table.order(:id).paginate(page, chunk_size).all
 
@@ -65,11 +60,7 @@ delete '/sessions/:key' do
 	session = Session.filter(:key => params[:key]).first
 	stop 404 unless session
 
-	if $connections[session.key]
-		$connections[session.key].disconnect
-		$connections.delete session.key
-	end
-
+	session.disconnect
 	session.destroy
 
 	"ok"

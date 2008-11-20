@@ -3,7 +3,7 @@ require 'rest_client'
 require 'sequel'
 require 'json'
 
-require '/home/adam/rush/lib/rush'
+require '/Users/adam/rush/lib/rush'
 
 dir = Rush.dir(__FILE__)
 dir['local.db'].destroy
