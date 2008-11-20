@@ -9,11 +9,14 @@ dir = Rush.dir(__FILE__)
 dir['local.db'].destroy
 dir['full.db'].duplicate 'local.db'
 
+dir['remote.db'].destroy
+dir['empty.db'].duplicate 'remote.db'
+
 DB = Sequel.connect('sqlite://local.db')
 
 server = RestClient::Resource.new('http://localhost:4567')
 
-uri = server['sessions'].post ''
+uri = server['sessions'].post 'sqlite://remote.db'
 session = server[uri]
 
 chunk_size = 10

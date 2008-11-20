@@ -3,12 +3,11 @@ require 'sinatra'
 require 'sequel'
 require 'json'
 
-require '/home/adam/rush/lib/rush'
-
 configure do
-	dir = Rush.dir(__FILE__)
-	dir['remote.db'].destroy
-	dir['empty.db'].duplicate 'remote.db'
+	Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://sessions.db')
+
+	$LOAD_PATH.unshift(File.dirname(__FILE__) + '/lib')
+	require 'session'
 end
 
 error do
@@ -22,16 +21,20 @@ post '/sessions' do
 	# todo: authenticate
 
 	key = rand(9999999999).to_s
+	database_url = request.body.string
 
-	$connections ||= {}
-	$connections[key] = Sequel.connect('sqlite://local.db')
+	Session.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
 
 	"/sessions/#{key}"
 end
 
 post '/sessions/:key/:table' do
-	db = $connections[params[:key]]
-	stop 404 unless db
+	session = Session.filter(:key => params[:key]).first
+	stop 404 unless session
+
+	$connections ||= {}
+	$connections[session.key] ||= Sequel.connect(session.database_url)
+	db = $connections[session.key]
 
 	data = JSON.parse request.body.string
 
@@ -41,11 +44,16 @@ post '/sessions/:key/:table' do
 end
 
 delete '/sessions/:key' do
-	db = $connections[params[:key]]
-	stop 404 unless db
+	session = Session.filter(:key => params[:key]).first
+	stop 404 unless session
 
-	db.disconnect
-	$connections.delete params[:key]
+	if $connections[session.key]
+		$connections[session.key].disconnect
+		$connections.delete session.key
+	end
+
+	session.destroy
+
 	"ok"
 end
 
