@@ -15,6 +15,7 @@ server = RestClient::Resource.new('http://localhost:4567/')
 
 id = server['sessions'].post ''
 session = server["sessions/#{id}"]
+spinoff_session = RestClient::Resource.new('http://localhost:5000/sessions/1')
 
 chunk_size = 10
 
@@ -25,7 +26,7 @@ DB.tables.each do |table|
 	page = 1
 	while (page-1)*chunk_size < count
 		data = DB[table].order(:id).paginate(page, chunk_size).all.to_json
-		session[table].post data
+		spinoff_session[table].post data
 		print "."
 		page += 1
 	end

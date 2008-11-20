@@ -1,7 +1,5 @@
 require 'rubygems'
 require 'sinatra'
-require 'sequel'
-require 'json'
 
 require '/home/adam/rush/lib/rush'
 
@@ -9,8 +7,6 @@ configure do
 	dir = Rush.dir(__FILE__)
 	dir['remote.db'].destroy
 	dir['empty.db'].duplicate 'remote.db'
-
-	DB = Sequel.connect('sqlite://remote.db')
 end
 
 error do
@@ -21,23 +17,16 @@ error do
 end
 
 post '/sessions' do
-	puts "=== Starting session"
+	system "ruby spinoff.rb -p 5000 &"
+	sleep 2
 	"1"
 end
 
 post '/sessions/:id/:table' do
-	data = JSON.parse request.body.string
-	puts "Received #{data.size} records"
-
-	puts data.inspect
-
-	data.each do |row|
-		DB[params[:table].to_sym] << row
-	end
+	"wrong server"
 end
 
 delete '/sessions/:id' do
-	puts "--- Ending session"
 	"ok"
 end
 
