@@ -40,6 +40,8 @@ post '/sessions/:key/:table' do
 	db.transaction do
 		data.each { |row| table << row }
 	end
+
+	"#{data.size} records loaded"
 end
 
 get '/sessions/:key/:table' do
