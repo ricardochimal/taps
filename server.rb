@@ -39,8 +39,8 @@ post '/sessions/:key/:table' do
 	data = JSON.parse request.body.string
 	table = db[params[:table].to_sym]
 
-	data.each do |row|
-		table << row
+	db.transaction do
+		data.each { |row| table << row }
 	end
 end
 
