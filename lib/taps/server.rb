@@ -47,7 +47,12 @@ get '/sessions/:key/schema' do
 	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
 
-	session.connection.schema.to_json
+	schema = session.connection.schema
+	tables = session.connection.tables
+
+	res = schema.keys.select { |k| tables.include? k }.inject({}) { |a,k| a[k] = schema[k]; a }
+
+	res.to_json
 end
 
 get '/sessions/:key/:table' do
