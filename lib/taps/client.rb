@@ -4,16 +4,23 @@ require 'json'
 
 module Taps
 class Client
+	attr_reader :database_url, :remote_url
+
 	def initialize(database_url, remote_url)
 		@database_url = database_url
 		@remote_url = remote_url
 	end
 
+	def db
+		@db ||= Sequel.connect(database_url)
+	end
+
+	def server
+		@server ||= RestClient::Resource.new(remote_url)
+	end
+
 	def send
 		puts "Sending schema and data from local database #{@database_url} to remote taps server at #{@remote_url}"
-
-		db = Sequel.connect(@database_url)
-		server = RestClient::Resource.new(@remote_url)
 
 		uri = server['sessions'].post ''
 		session = server[uri]
@@ -41,9 +48,6 @@ class Client
 
 	def receive
 		puts "Receiving schema and data from remote taps server #{@remote_url} into local database #{@database_url}"
-
-		db = Sequel.connect(@database_url)
-		server = RestClient::Resource.new(@remote_url)
 
 		uri = server['sessions'].post ''
 		session = server[uri]
@@ -73,9 +77,6 @@ class Client
 
 	def receive_schema
 		puts "Receiving just schema from remote taps server #{@remote_url} into local database #{@database_url}"
-
-		db = Sequel.connect(@database_url)
-		server = RestClient::Resource.new(@remote_url)
 
 		uri = server['sessions'].post ''
 		session = server[uri]
