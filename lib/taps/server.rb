@@ -43,6 +43,13 @@ post '/sessions/:key/:table' do
 	"#{data.size} records loaded"
 end
 
+get '/sessions/:key/schema' do
+	session = DbSession.filter(:key => params[:key]).first
+	stop 404 unless session
+
+	session.connection.schema.to_json
+end
+
 get '/sessions/:key/:table' do
 	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session

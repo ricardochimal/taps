@@ -36,6 +36,14 @@ elsif cmd == 'send' || cmd == 'receive'
 	client = Taps::Client.new(database_url, remote_url)
 	client.send if cmd == 'send'
 	client.receive if cmd == 'receive'
+elsif cmd == 'receive:schema'
+	remote_url = ARGV.shift.strip rescue ''
+	show_usage_and_exit if remote_url == ''
+
+	require File.dirname(__FILE__) + '/../lib/taps/client'
+
+	client = Taps::Client.new(database_url, remote_url)
+	client.receive_schema
 else
 	show_usage_and_exit
 end

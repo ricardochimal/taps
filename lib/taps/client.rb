@@ -70,5 +70,28 @@ class Client
 
 		session.delete
 	end
+
+	def receive_schema
+		puts "Receiving just schema from remote taps server #{@remote_url} into local database #{@database_url}"
+
+		db = Sequel.connect(@database_url)
+		server = RestClient::Resource.new(@remote_url)
+
+		uri = server['sessions'].post ''
+		session = server[uri]
+
+		schema = JSON.parse session['schema'].get
+
+		schema.each do |table, fields|
+			puts "Creating table #{table} with #{fields.size} fields"
+			db.create_table(table) do
+				fields.each do |name, opts|
+					column name, opts['db_type']
+				end
+			end
+		end
+
+		session.delete
+	end
 end
 end
