@@ -57,7 +57,7 @@ class Client
 				rows = JSON.parse session["#{table_name}?page=#{page}"].get
 				break if rows.size == 0
 
-				transaction do
+				db.transaction do
 					rows.each { |row| table << row }
 				end
 				print "."
