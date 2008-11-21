@@ -8,6 +8,7 @@ database_url = ARGV.shift.strip rescue ''
 def show_usage_and_exit
 	puts <<-EOTXT
 usage: taps server <database_url>
+       taps receive <database_url> <remote_url>
        taps send <database_url> <remote_url>
 	EOTXT
 	exit 1
@@ -26,13 +27,15 @@ if cmd == 'server'
 	set :port, 5000
 	set :env, 'production'
 	require File.dirname(__FILE__) + '/../lib/taps/server'
-elsif cmd == 'send'
+elsif cmd == 'send' || cmd == 'receive'
 	remote_url = ARGV.shift.strip rescue ''
 	show_usage_and_exit if remote_url == ''
 
 	require File.dirname(__FILE__) + '/../lib/taps/client'
 
-	Taps::Client.new(database_url, remote_url).send
+	client = Taps::Client.new(database_url, remote_url)
+	client.send if cmd == 'send'
+	client.receive if cmd == 'receive'
 else
 	show_usage_and_exit
 end

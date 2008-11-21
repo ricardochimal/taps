@@ -6,8 +6,7 @@ require 'json'
 configure do
 	Sequel.connect(ENV['DATABASE_URL'] || 'sqlite:/')
 
-	$LOAD_PATH.unshift(File.dirname(__FILE__) + '/lib')
-	require 'session'
+	require File.dirname(__FILE__) + '/db_session'
 end
 
 error do
@@ -23,13 +22,13 @@ post '/sessions' do
 	key = rand(9999999999).to_s
 	database_url = Sinatra.application.options.database_url || request.body.string
 
-	Session.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
+	DbSession.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
 
 	"/sessions/#{key}"
 end
 
 post '/sessions/:key/:table' do
-	session = Session.filter(:key => params[:key]).first
+	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
 
 	data = JSON.parse request.body.string
@@ -45,10 +44,12 @@ post '/sessions/:key/:table' do
 end
 
 get '/sessions/:key/:table' do
-	session = Session.filter(:key => params[:key]).first
+	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
 
-	page = params[:page] || 1
+	page = params[:page].to_i
+	page = 1 if page < 1
+
 	chunk_size = 10
 
 	db = session.connection
@@ -59,7 +60,7 @@ get '/sessions/:key/:table' do
 end
 
 delete '/sessions/:key' do
-	session = Session.filter(:key => params[:key]).first
+	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
 
 	session.disconnect

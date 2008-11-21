@@ -33,7 +33,39 @@ class Client
 				page += 1
 			end
 
-			puts
+			puts "done."
+		end
+
+		session.delete
+	end
+
+	def receive
+		puts "Receiving schema and data from remote taps server #{@remote_url} into local database #{@database_url}"
+
+		db = Sequel.connect(@database_url)
+		server = RestClient::Resource.new(@remote_url)
+
+		uri = server['sessions'].post ''
+		session = server[uri]
+
+		db.tables.each do |table_name|
+			table = db[table_name]
+			print "#{table_name}"
+
+			page = 1
+			loop do
+				rows = JSON.parse session["#{table_name}?page=#{page}"].get
+				break if rows.size == 0
+
+				rows.each do |row|
+					table << row
+				end
+				print "."
+
+				page += 1
+			end
+
+			puts "done."
 		end
 
 		session.delete

@@ -1,4 +1,4 @@
-class Session < Sequel::Model
+class DbSession < Sequel::Model
 	set_schema do
 		primary_key :id
 		text :key
@@ -20,4 +20,4 @@ class Session < Sequel::Model
 	end
 end
 
-Session.create_table unless Session.table_exists?
+DbSession.create_table unless DbSession.table_exists?
