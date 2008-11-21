@@ -62,7 +62,7 @@ get '/sessions/:key/:table' do
 	page = params[:page].to_i
 	page = 1 if page < 1
 
-	chunk_size = 10
+	chunk_size = 500
 
 	db = session.connection
 	table = db[params[:table].to_sym]

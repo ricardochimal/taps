@@ -18,7 +18,7 @@ class Client
 		uri = server['sessions'].post ''
 		session = server[uri]
 
-		chunk_size = 100
+		chunk_size = 500
 
 		db.tables.each do |table_name|
 			table = db[table_name]
