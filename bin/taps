@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+
+cmd = ARGV.shift.downcase.strip rescue ''
+database_url = ARGV.shift.strip rescue ''
+
+def show_usage_and_exit
+	puts <<-EOTXT
+usage: taps server <database_url>
+       taps send <database_url> <remote_url>
+	EOTXT
+	exit 1
+end
+
+show_usage_and_exit if cmd == '' or database_url == ''
+
+if cmd == 'server'
+	puts "Taps database import/export server"
+
+	require 'sinatra'
+
+	set :database_url, database_url
+	puts "Using database: #{database_url}"
+
+	set :port, 5000
+	set :env, 'production'
+	require File.dirname(__FILE__) + '/../lib/taps/server'
+elsif cmd == 'send'
+	remote_url = ARGV.shift.strip rescue ''
+	show_usage_and_exit if remote_url == ''
+
+	require File.dirname(__FILE__) + '/../lib/taps/client'
+
+	Taps::Client.new(database_url, remote_url).send
+else
+	show_usage_and_exit
+end
+

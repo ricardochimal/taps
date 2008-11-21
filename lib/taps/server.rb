@@ -4,7 +4,7 @@ require 'sequel'
 require 'json'
 
 configure do
-	Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://sessions.db')
+	Sequel.connect(ENV['DATABASE_URL'] || 'sqlite:/')
 
 	$LOAD_PATH.unshift(File.dirname(__FILE__) + '/lib')
 	require 'session'
@@ -21,7 +21,7 @@ post '/sessions' do
 	# todo: authenticate
 
 	key = rand(9999999999).to_s
-	database_url = request.body.string
+	database_url = Sinatra.application.options.database_url || request.body.string
 
 	Session.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
 
