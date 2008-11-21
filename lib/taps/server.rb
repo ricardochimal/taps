@@ -66,7 +66,9 @@ get '/sessions/:key/:table' do
 
 	db = session.connection
 	table = db[params[:table].to_sym]
-	rows = table.order(:id).paginate(page, chunk_size).all
+	columns = table.columns
+	order = columns.include?(:id) ? :id : columns.first
+	rows = table.order(order).paginate(page, chunk_size).all
 
 	rows.to_json
 end
