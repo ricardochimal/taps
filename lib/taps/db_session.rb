@@ -8,14 +8,14 @@ class DbSession < Sequel::Model
 	end
 
 	def connection
-		Thread.current[:connections] ||= {}
-		Thread.current[:connections][key] ||= Sequel.connect(database_url)
+		@@connections ||= {}
+		@@connections[key] ||= Sequel.connect(database_url)
 	end
 
 	def disconnect
-		if Thread.current[:connections] and Thread.current[:connections][key]
-			Thread.current[:connections][key].disconnect
-			Thread.current[:connections].delete key
+		if defined? @@connections and @@connections[key]
+			@@connections[key].disconnect
+			@@connections.delete key
 		end
 	end
 end
