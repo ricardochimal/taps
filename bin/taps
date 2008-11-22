@@ -5,6 +5,8 @@ require 'rubygems'
 cmd = ARGV.shift.downcase.strip rescue ''
 database_url = ARGV.shift.strip rescue ''
 
+ChunkSize = 500
+
 def show_usage_and_exit
 	puts <<-EOTXT
 usage: taps server <database_url>

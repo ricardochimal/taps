@@ -1,6 +1,7 @@
 require 'rest_client'
 require 'sequel'
 require 'json'
+require 'progressbar'
 
 module Taps
 class ClientSession
@@ -41,16 +42,14 @@ class ClientSession
 	def cmd_send
 		puts "Sending schema and data from local database #{@database_url} to remote taps server at #{@remote_url}"
 
-		chunk_size = 500
-
 		db.tables.each do |table_name|
 			table = db[table_name]
 			count = table.count
 			puts "#{table_name} - #{count} records"
 
 			page = 1
-			while (page-1)*chunk_size < count
-				data = table.order(:id).paginate(page, chunk_size).all.to_json
+			while (page-1)*ChunkSize < count
+				data = table.order(:id).paginate(page, ChunkSize).all.to_json
 				session_resource[table_name].post data
 				print "."
 				page += 1
@@ -68,9 +67,16 @@ class ClientSession
 	def cmd_receive_data
 		puts "Receiving data from remote taps server #{@remote_url} into local database #{@database_url}"
 
-		db.tables.each do |table_name|
-			table = db[table_name]
-			print "#{table_name}"
+		tables_with_counts = JSON.parse session_resource['tables'].get
+		record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
+
+		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
+
+		tables_with_counts.each do |table_name, count|
+			table = db[table_name.to_sym]
+			pages = (count / ChunkSize).round
+
+			progress = ProgressBar.new(table_name, pages)
 
 			page = 1
 			loop do
@@ -80,12 +86,12 @@ class ClientSession
 				db.transaction do
 					rows.each { |row| table << row }
 				end
-				print "."
 
+				progress.inc
 				page += 1
 			end
 
-			puts "done."
+			progress.finish
 		end
 	end
 
@@ -102,6 +108,10 @@ class ClientSession
 				end
 			end
 		end
+	end
+
+	def format_number(num)
+		num.to_s.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
 	end
 end
 end

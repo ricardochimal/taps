@@ -55,6 +55,21 @@ get '/sessions/:key/schema' do
 	res.to_json
 end
 
+get '/sessions/:key/tables' do
+	session = DbSession.filter(:key => params[:key]).first
+	stop 404 unless session
+
+	db = session.connection
+	tables = db.tables
+
+	tables_with_counts = tables.inject({}) do |accum, table|
+		accum[table] = db[table].count
+		accum
+	end
+
+	tables_with_counts.to_json
+end
+
 get '/sessions/:key/:table' do
 	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
@@ -62,13 +77,11 @@ get '/sessions/:key/:table' do
 	page = params[:page].to_i
 	page = 1 if page < 1
 
-	chunk_size = 500
-
 	db = session.connection
 	table = db[params[:table].to_sym]
 	columns = table.columns
 	order = columns.include?(:id) ? :id : columns.first
-	rows = table.order(order).paginate(page, chunk_size).all
+	rows = table.order(order).paginate(page, ChunkSize).all
 
 	rows.to_json
 end
