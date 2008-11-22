@@ -36,24 +36,14 @@ if cmd == 'server'
 	set :env, 'production'
 
 	require File.dirname(__FILE__) + '/../lib/taps/server'
-elsif cmd == 'send' || cmd == 'receive'
+elsif cmd.match(/^(send|receive)(:(schema|data))?$/)
 	remote_url = ARGV.shift.strip rescue ''
 	show_usage_and_exit if remote_url == ''
 
 	require File.dirname(__FILE__) + '/../lib/taps/client_session'
 
 	Taps::ClientSession.start(database_url, remote_url) do |session|
-		session.send if cmd == 'send'
-		session.receive if cmd == 'receive'
-	end
-elsif cmd == 'receive:schema'
-	remote_url = ARGV.shift.strip rescue ''
-	show_usage_and_exit if remote_url == ''
-
-	require File.dirname(__FILE__) + '/../lib/taps/client_session'
-
-	Taps::ClientSession.start(database_url, remote_url) do |session|
-		session.receive_schema
+		session.send "cmd_#{cmd.gsub(/:/, '_')}".to_sym
 	end
 else
 	show_usage_and_exit

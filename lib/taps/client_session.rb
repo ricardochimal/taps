@@ -38,7 +38,7 @@ class ClientSession
 		@session_resource.delete if @session_resource
 	end
 
-	def send
+	def cmd_send
 		puts "Sending schema and data from local database #{@database_url} to remote taps server at #{@remote_url}"
 
 		chunk_size = 500
@@ -60,8 +60,13 @@ class ClientSession
 		end
 	end
 
-	def receive
-		puts "Receiving schema and data from remote taps server #{@remote_url} into local database #{@database_url}"
+	def cmd_receive
+		cmd_receive_schema
+		cmd_receive_data
+	end
+
+	def cmd_receive_data
+		puts "Receiving data from remote taps server #{@remote_url} into local database #{@database_url}"
 
 		db.tables.each do |table_name|
 			table = db[table_name]
@@ -84,8 +89,8 @@ class ClientSession
 		end
 	end
 
-	def receive_schema
-		puts "Receiving just schema from remote taps server #{@remote_url} into local database #{@database_url}"
+	def cmd_receive_schema
+		puts "Receiving schema from remote taps server #{@remote_url} into local database #{@database_url}"
 
 		schema = JSON.parse session_resource['schema'].get
 
