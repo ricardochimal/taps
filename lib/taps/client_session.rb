@@ -3,12 +3,18 @@ require 'sequel'
 require 'json'
 
 module Taps
-class Client
+class ClientSession
 	attr_reader :database_url, :remote_url
 
 	def initialize(database_url, remote_url)
 		@database_url = database_url
 		@remote_url = remote_url
+	end
+
+	def self.start(database_url, remote_url, &block)
+		s = new(database_url, remote_url)
+		yield s
+		s.close_session
 	end
 
 	def db
@@ -19,11 +25,21 @@ class Client
 		@server ||= RestClient::Resource.new(remote_url)
 	end
 
+	def session_resource
+		@session_resource ||= open_session
+	end
+
+	def open_session
+		uri = server['sessions'].post ''
+		server[uri]
+	end
+
+	def close_session
+		@session_resource.delete if @session_resource
+	end
+
 	def send
 		puts "Sending schema and data from local database #{@database_url} to remote taps server at #{@remote_url}"
-
-		uri = server['sessions'].post ''
-		session = server[uri]
 
 		chunk_size = 500
 
@@ -35,22 +51,17 @@ class Client
 			page = 1
 			while (page-1)*chunk_size < count
 				data = table.order(:id).paginate(page, chunk_size).all.to_json
-				session[table_name].post data
+				session_resource[table_name].post data
 				print "."
 				page += 1
 			end
 
 			puts "done."
 		end
-
-		session.delete
 	end
 
 	def receive
 		puts "Receiving schema and data from remote taps server #{@remote_url} into local database #{@database_url}"
-
-		uri = server['sessions'].post ''
-		session = server[uri]
 
 		db.tables.each do |table_name|
 			table = db[table_name]
@@ -58,7 +69,7 @@ class Client
 
 			page = 1
 			loop do
-				rows = JSON.parse session["#{table_name}?page=#{page}"].get
+				rows = JSON.parse session_resource["#{table_name}?page=#{page}"].get
 				break if rows.size == 0
 
 				db.transaction do
@@ -71,17 +82,12 @@ class Client
 
 			puts "done."
 		end
-
-		session.delete
 	end
 
 	def receive_schema
 		puts "Receiving just schema from remote taps server #{@remote_url} into local database #{@database_url}"
 
-		uri = server['sessions'].post ''
-		session = server[uri]
-
-		schema = JSON.parse session['schema'].get
+		schema = JSON.parse session_resource['schema'].get
 
 		schema.each do |table, fields|
 			puts "Creating table #{table} with #{fields.size} fields"
@@ -91,8 +97,6 @@ class Client
 				end
 			end
 		end
-
-		session.delete
 	end
 end
 end

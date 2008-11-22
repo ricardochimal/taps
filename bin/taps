@@ -31,19 +31,21 @@ elsif cmd == 'send' || cmd == 'receive'
 	remote_url = ARGV.shift.strip rescue ''
 	show_usage_and_exit if remote_url == ''
 
-	require File.dirname(__FILE__) + '/../lib/taps/client'
+	require File.dirname(__FILE__) + '/../lib/taps/client_session'
 
-	client = Taps::Client.new(database_url, remote_url)
-	client.send if cmd == 'send'
-	client.receive if cmd == 'receive'
+	Taps::ClientSession.start(database_url, remote_url) do |session|
+		session.send if cmd == 'send'
+		session.receive if cmd == 'receive'
+	end
 elsif cmd == 'receive:schema'
 	remote_url = ARGV.shift.strip rescue ''
 	show_usage_and_exit if remote_url == ''
 
-	require File.dirname(__FILE__) + '/../lib/taps/client'
+	require File.dirname(__FILE__) + '/../lib/taps/client_session'
 
-	client = Taps::Client.new(database_url, remote_url)
-	client.receive_schema
+	Taps::ClientSession.start(database_url, remote_url) do |session|
+		session.receive_schema
+	end
 else
 	show_usage_and_exit
 end
