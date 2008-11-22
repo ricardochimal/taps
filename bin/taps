@@ -16,16 +16,25 @@ end
 
 show_usage_and_exit if cmd == '' or database_url == ''
 
+require 'sequel'
+begin
+	db = Sequel.connect(database_url)
+	db.tables
+	db.disconnect
+rescue => e
+	puts "Failed to connect to database:\n  #{e.class} -> #{e}"
+	exit
+end
+
 if cmd == 'server'
 	puts "Taps database import/export server"
-
-	require 'sinatra'
-
-	set :database_url, database_url
 	puts "Using database: #{database_url}"
 
+	require 'sinatra'
+	set :database_url, database_url
 	set :port, 5000
 	set :env, 'production'
+
 	require File.dirname(__FILE__) + '/../lib/taps/server'
 elsif cmd == 'send' || cmd == 'receive'
 	remote_url = ARGV.shift.strip rescue ''
