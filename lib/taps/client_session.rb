@@ -1,7 +1,8 @@
 require 'rest_client'
 require 'sequel'
 require 'json'
-require 'progressbar'
+
+require File.dirname(__FILE__) + '/progress_bar'
 
 module Taps
 class ClientSession
