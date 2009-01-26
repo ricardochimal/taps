@@ -19,6 +19,9 @@ end
 show_usage_and_exit if cmd == '' or database_url == ''
 
 require 'sequel'
+
+Sequel.connect('sqlite://taps.db')   # database for taps' own models
+
 begin
 	db = Sequel.connect(database_url)
 	db.tables
