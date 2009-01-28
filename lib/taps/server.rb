@@ -3,6 +3,10 @@ require 'sinatra'
 require 'sequel'
 require 'json'
 
+use Rack::Auth::Basic do |login, password|
+	login == Taps::Config.login && password == Taps::Config.password
+end
+
 configure do
 	Sequel.connect(ENV['DATABASE_URL'] || 'sqlite:/')
 

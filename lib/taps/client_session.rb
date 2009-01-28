@@ -101,6 +101,9 @@ class ClientSession
 
 		schema = JSON.parse session_resource['schema'].get
 
+		require 'pp'
+		pp schema
+
 		schema.each do |table, fields|
 			puts "Creating table #{table} with #{fields.size} fields"
 			db.create_table(table) do
