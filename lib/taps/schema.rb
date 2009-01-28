@@ -68,5 +68,15 @@ end
 EORUBY
 		eval(schema)
 	end
+
+	def reset_db_sequences(database_url)
+		connection(database_url)
+
+		if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
+			ActiveRecord::Base.connection.tables do |table|
+				ActiveRecord::Base.connection.reset_pk_sequence!(table) rescue nil
+			end
+		end
+	end
 end
 end

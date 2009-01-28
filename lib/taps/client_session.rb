@@ -64,6 +64,7 @@ class ClientSession
 		cmd_receive_schema
 		cmd_receive_data
 		cmd_receive_indexes
+		cmd_reset_db_sequences
 	end
 
 	def cmd_receive_data
@@ -119,6 +120,12 @@ class ClientSession
 			File.open(tmp.path, 'w') { |f| f.write(index_data) }
 			puts `#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{@database_url} #{tmp.path}`
 		end
+	end
+
+	def cmd_reset_db_sequences
+		puts "Resetting db sequences in #{@database_url}"
+
+		puts `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{@database_url}`
 	end
 
 	def format_number(num)
