@@ -50,7 +50,10 @@ get '/sessions/:key/schema' do
 	schema = session.connection.schema
 	tables = session.connection.tables
 
-	res = schema.keys.select { |k| tables.include? k }.inject({}) { |a,k| a[k] = schema[k]; a }
+	res = { }
+	tables.each do |table|
+		res[table] = schema[table]
+	end
 
 	res.to_json
 end
