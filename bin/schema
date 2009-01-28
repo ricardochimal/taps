@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require File.dirname(__FILE__) + '/../lib/taps/schema'
+
+cmd = ARGV.shift.strip rescue ''
+database_url = ARGV.shift.strip rescue ''
+
+def show_usage_and_exit
+	puts <<EOTXT
+	schema dump <database_url>
+	schema load <database_url> <schema_file>
+EOTXT
+	exit(1)
+end
+
+if cmd == 'dump'
+	puts Taps::Schema.dump(database_url)
+elsif cmd == 'load'
+	filename = ARGV.shift.strip rescue ''
+	schema = File.read(filename) rescue show_usage_and_exit
+	Taps::Schema.load(database_url, schema)
+else
+	show_usage_and_exit
+end
