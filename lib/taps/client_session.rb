@@ -63,6 +63,7 @@ class ClientSession
 	def cmd_receive
 		cmd_receive_schema
 		cmd_receive_data
+		cmd_receive_indexes
 	end
 
 	def cmd_receive_data
@@ -105,6 +106,18 @@ class ClientSession
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(schema_data) }
 			puts `#{File.dirname(__FILE__)}/../../bin/schema load #{@database_url} #{tmp.path}`
+		end
+	end
+
+	def cmd_receive_indexes
+		puts "Receiving schema indexes from remote taps server #{@remote_url} into local database #{@database_url}"
+
+		require 'tempfile'
+		index_data = session_resource['indexes'].get
+
+		Tempfile.open('taps') do |tmp|
+			File.open(tmp.path, 'w') { |f| f.write(index_data) }
+			puts `#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{@database_url} #{tmp.path}`
 		end
 	end
 

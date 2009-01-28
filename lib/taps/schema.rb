@@ -35,10 +35,38 @@ module Schema
 		stream.string
 	end
 
+	def dump_without_indexes(database_url)
+		schema = dump(database_url)
+		schema.split("\n").collect do |line|
+			if line =~ /^\s+add_index/
+				line = "##{line}"
+			end
+			line
+		end.join("\n")
+	end
+
+	def indexes(database_url)
+		schema = dump(database_url)
+		schema.split("\n").collect do |line|
+			line if line =~ /^\s+add_index/
+		end.uniq.join("\n")
+	end
+
 	def load(database_url, schema)
 		connection(database_url)
 		eval(schema)
 		ActiveRecord::Base.connection.execute("DELETE FROM schema_migrations")
+	end
+
+	def load_indexes(database_url, indexes)
+		connection(database_url)
+
+		schema =<<EORUBY
+ActiveRecord::Schema.define do
+	#{indexes}
+end
+EORUBY
+		eval(schema)
 	end
 end
 end

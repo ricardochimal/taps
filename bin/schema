@@ -8,13 +8,21 @@ database_url = ARGV.shift.strip rescue ''
 def show_usage_and_exit
 	puts <<EOTXT
 	schema dump <database_url>
+	schema indexes <database_url>
 	schema load <database_url> <schema_file>
+	schema load_indexes <database_url> <indexes_file>
 EOTXT
 	exit(1)
 end
 
 if cmd == 'dump'
-	puts Taps::Schema.dump(database_url)
+	puts Taps::Schema.dump_without_indexes(database_url)
+elsif cmd == 'indexes'
+	puts Taps::Schema.indexes(database_url)
+elsif cmd == 'load_indexes'
+	filename = ARGV.shift.strip rescue ''
+	indexes = File.read(filename) rescue show_usage_and_exit
+	Taps::Schema.load_indexes(database_url, indexes)
 elsif cmd == 'load'
 	filename = ARGV.shift.strip rescue ''
 	schema = File.read(filename) rescue show_usage_and_exit

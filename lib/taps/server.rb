@@ -55,6 +55,14 @@ get '/sessions/:key/schema' do
 	`#{schema_app} dump #{session.database_url}`
 end
 
+get '/sessions/:key/indexes' do
+	session = DbSession.filter(:key => params[:key]).first
+	stop 404 unless session
+
+	schema_app = File.dirname(__FILE__) + '/../../bin/schema'
+	`#{schema_app} indexes #{session.database_url}`
+end
+
 get '/sessions/:key/tables' do
 	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
