@@ -38,6 +38,7 @@ module Schema
 	def load(database_url, schema)
 		connection(database_url)
 		eval(schema)
+		ActiveRecord::Base.connection.execute("DELETE FROM schema_migrations")
 	end
 end
 end
