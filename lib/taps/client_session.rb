@@ -99,18 +99,12 @@ class ClientSession
 	def cmd_receive_schema
 		puts "Receiving schema from remote taps server #{@remote_url} into local database #{@database_url}"
 
-		schema = JSON.parse session_resource['schema'].get
+		require 'tempfile'
+		schema_data = session_resource['schema'].get
 
-		require 'pp'
-		pp schema
-
-		schema.each do |table, fields|
-			puts "Creating table #{table} with #{fields.size} fields"
-			db.create_table(table) do
-				fields.each do |name, opts|
-					column name, opts['db_type']
-				end
-			end
+		Tempfile.open('taps') do |tmp|
+			File.open(tmp.path, 'w') { |f| f.write(schema_data) }
+			puts `#{File.dirname(__FILE__)}/../../bin/schema load #{@database_url} #{tmp.path}`
 		end
 	end
 

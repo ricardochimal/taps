@@ -51,15 +51,8 @@ get '/sessions/:key/schema' do
 	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
 
-	schema = session.connection.schema
-	tables = session.connection.tables
-
-	res = { }
-	tables.each do |table|
-		res[table] = schema[table]
-	end
-
-	res.to_json
+	schema_app = File.dirname(__FILE__) + '/../../bin/schema'
+	`#{schema_app} dump #{session.database_url}`
 end
 
 get '/sessions/:key/tables' do
