@@ -73,8 +73,8 @@ EORUBY
 		connection(database_url)
 
 		if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
-			ActiveRecord::Base.connection.tables do |table|
-				ActiveRecord::Base.connection.reset_pk_sequence!(table) rescue nil
+			ActiveRecord::Base.connection.tables.each do |table|
+				ActiveRecord::Base.connection.reset_pk_sequence!(table)
 			end
 		end
 	end
