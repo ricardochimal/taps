@@ -17,6 +17,10 @@ describe Taps::Schema do
 		}
 	end
 
+	it "translates sqlite in the database url to sqlite3" do
+		Taps::Schema.create_config("sqlite://myuser:mypass@localhost/mydb")['adapter'].should == 'sqlite3'
+	end
+
 	it "connects activerecord to the database" do
 		Taps::Schema.expects(:create_config).with("postgres://myuser:mypass@localhost/mydb").returns("db config")
 		ActiveRecord::Base.expects(:establish_connection).with("db config").returns(true)

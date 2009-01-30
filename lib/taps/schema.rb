@@ -12,8 +12,11 @@ module Schema
 
 	def create_config(url)
 		uri = URI.parse(url)
+		adapter = uri.scheme
+		adapter = 'postgresql' if adapter == 'postgres'
+		adapter = 'sqlite3' if adapter == 'sqlite'
 		config = {
-			'adapter' => (uri.scheme == 'postgres') ? 'postgresql' : uri.scheme,
+			'adapter' => adapter,
 			'database' => uri.path.blank? ? uri.host : uri.path.split('/')[1],
 			'username' => uri.user,
 			'password' => uri.password,
