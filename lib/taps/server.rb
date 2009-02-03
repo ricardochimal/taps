@@ -93,7 +93,7 @@ get '/sessions/:key/:table/:chunk' do
 	table = db[params[:table].to_sym]
 	columns = table.columns
 	order = columns.include?(:id) ? :id : columns.first
-	raw_data = Marshal.dump(table.order(order).limit(chunk, offset).all)
+	raw_data = Marshal.dump(Taps::Utils.format_data(table.order(order).limit(chunk, offset).all))
 	gzip_data = Taps::Utils.gzip(raw_data)
 	response['Taps-Checksum'] = Taps::Utils.checksum(gzip_data).to_s
 	response['Content-Type'] = "application/octet-stream"

@@ -14,5 +14,9 @@ describe Taps::Utils do
 	it "generates a checksum using crc32" do
 		Taps::Utils.checksum("hello world").should == Zlib.crc32("hello world")
 	end
+
+	it "formats a data hash into one hash that contains an array of headers and an array of array of data" do
+		Taps::Utils.format_data([ { :x => 1, :y => 1 }, { :x => 2, :y => 2 } ]).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
+	end
 end
 

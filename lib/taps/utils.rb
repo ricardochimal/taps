@@ -28,5 +28,14 @@ module Utils
 		gz.close
 		data
 	end
+
+	def format_data(data)
+		return {} if data.size == 0
+		header = data[0].keys
+		only_data = data.collect do |row|
+			header.collect { |h| row[h] }
+		end
+		{ :header => header, :data => only_data }
+	end
 end
 end
