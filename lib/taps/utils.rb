@@ -10,7 +10,7 @@ module Utils
 	end
 
 	def valid_data?(data, crc32)
-		Zlib.crc32(data) == crc32
+		Zlib.crc32(data) == crc32.to_i
 	end
 
 	def gzip(data)
