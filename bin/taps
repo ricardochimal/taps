@@ -46,7 +46,7 @@ if cmd == 'server'
 	require 'sinatra'
 	set :database_url, Taps::Config.database_url
 	set :port, 5000
-	set :env, 'production'
+	set :environment, 'production'
 
 	require File.dirname(__FILE__) + '/../lib/taps/server'
 elsif cmd.match(/^(send|receive)(:(schema|data))?$/)
