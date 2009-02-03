@@ -2,7 +2,7 @@ require 'rubygems'
 require 'sinatra'
 require 'sequel'
 require 'json'
-require 'zlib'
+require File.dirname(__FILE__) + '/utils'
 
 use Rack::Auth::Basic do |login, password|
 	login == Taps::Config.login && password == Taps::Config.password
@@ -94,9 +94,10 @@ get '/sessions/:key/:table/:chunk' do
 	columns = table.columns
 	order = columns.include?(:id) ? :id : columns.first
 	raw_data = Marshal.dump(table.order(order).limit(chunk, offset).all)
-	response['Taps-Crc32'] = Zlib.crc32(raw_data).to_s
+	gzip_data = Taps::Utils.gzip(raw_data)
+	response['Taps-Checksum'] = Taps::Utils.checksum(gzip_data).to_s
 	response['Content-Type'] = "application/octet-stream"
-	raw_data
+	gzip_data
 end
 
 delete '/sessions/:key' do
