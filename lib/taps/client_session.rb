@@ -79,12 +79,13 @@ class ClientSession
 		tables_with_counts.each do |table_name, count|
 			table = db[table_name.to_sym]
 			pages = (count / ChunkSize).round
+			chunk_size = ChunkSize
 
-			progress = ProgressBar.new(table_name, pages)
+			progress = ProgressBar.new(table_name, count)
 
-			page = 1
+			offset = 0
 			loop do
-				response = session_resource["#{table_name}?page=#{page}"].get
+				response = session_resource["#{table_name}/#{chunk_size}?offset=#{offset}"].get
 				crc32 = response.headers[:taps_crc32].to_i
 				raw_data = response.to_s
 				# retry the same page if the data was corrupted
@@ -96,8 +97,8 @@ class ClientSession
 					rows.each { |row| table << row }
 				end
 
-				progress.inc
-				page += 1
+				progress.inc(rows.size)
+				offset += rows.size
 			end
 
 			progress.finish
