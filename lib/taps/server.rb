@@ -79,18 +79,21 @@ get '/sessions/:key/tables' do
 	tables_with_counts.to_json
 end
 
-get '/sessions/:key/:table' do
+get '/sessions/:key/:table/:chunk' do
 	session = DbSession.filter(:key => params[:key]).first
 	stop 404 unless session
 
-	page = params[:page].to_i
-	page = 1 if page < 1
+	chunk = params[:chunk].to_i
+	chunk = 500 if chunk < 1
+
+	offset = params[:offset].to_i
+	offset = 0 if offset < 0
 
 	db = session.connection
 	table = db[params[:table].to_sym]
 	columns = table.columns
 	order = columns.include?(:id) ? :id : columns.first
-	raw_data = Marshal.dump(table.order(order).paginate(page, ChunkSize).all)
+	raw_data = Marshal.dump(table.order(order).limit(chunk, offset).all)
 	response['Taps-Crc32'] = Zlib.crc32(raw_data).to_s
 	response['Content-Type'] = "application/octet-stream"
 	raw_data
