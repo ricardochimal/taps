@@ -18,7 +18,7 @@ module Utils
 		gz = Zlib::GzipWriter.new(io)
 		gz.write data
 		gz.close
-		io.string.to_s
+		io.string
 	end
 
 	def gunzip(gzip_data)
