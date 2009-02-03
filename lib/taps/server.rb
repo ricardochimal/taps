@@ -2,6 +2,7 @@ require 'rubygems'
 require 'sinatra'
 require 'sequel'
 require 'json'
+require 'zlib'
 
 use Rack::Auth::Basic do |login, password|
 	login == Taps::Config.login && password == Taps::Config.password
@@ -89,9 +90,10 @@ get '/sessions/:key/:table' do
 	table = db[params[:table].to_sym]
 	columns = table.columns
 	order = columns.include?(:id) ? :id : columns.first
-	rows = table.order(order).paginate(page, ChunkSize).all
-
-	rows.to_json
+	raw_data = Marshal.dump(table.order(order).paginate(page, ChunkSize).all)
+	response['Taps-Crc32'] = Zlib.crc32(raw_data).to_s
+	response['Content-Type'] = "application/octet-stream"
+	raw_data
 end
 
 delete '/sessions/:key' do
