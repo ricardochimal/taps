@@ -1,6 +1,7 @@
 require 'rest_client'
 require 'sequel'
 require 'json'
+require 'zlib'
 
 require File.dirname(__FILE__) + '/progress_bar'
 
@@ -83,7 +84,12 @@ class ClientSession
 
 			page = 1
 			loop do
-				rows = JSON.parse session_resource["#{table_name}?page=#{page}"].get
+				response = session_resource["#{table_name}?page=#{page}"].get
+				crc32 = response.headers[:taps_crc32].to_i
+				raw_data = response.to_s
+				# retry the same page if the data was corrupted
+				next if Zlib.crc32(raw_data) != crc32
+				rows = Marshal.load(raw_data)
 				break if rows.size == 0
 
 				db.transaction do
