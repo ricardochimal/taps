@@ -86,7 +86,10 @@ class ClientSession
 
 			offset = 0
 			loop do
-				response = session_resource["#{table_name}/#{chunk_size}?offset=#{offset}"].get
+				response = nil
+				chunk_size = Taps::Utils.calculate_chunksize(chunk_size) do
+					response = session_resource["#{table_name}/#{chunk_size}?offset=#{offset}"].get
+				end
 				# retry the same page if the data was corrupted
 				next unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
 				rows = Marshal.load(Taps::Utils.gunzip(response.to_s))

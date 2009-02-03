@@ -18,5 +18,28 @@ describe Taps::Utils do
 	it "formats a data hash into one hash that contains an array of headers and an array of array of data" do
 		Taps::Utils.format_data([ { :x => 1, :y => 1 }, { :x => 2, :y => 2 } ]).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
 	end
+
+	it "scales chunksize down slowly when the time delta of the block is just over a second" do
+		Time.stubs(:now).returns(10.0).returns(11.5)
+		Taps::Utils.calculate_chunksize(1000) { }.should == 900
+	end
+
+	it "scales chunksize down fast when the time delta of the block is over 3 seconds" do
+		Time.stubs(:now).returns(10.0).returns(15.0)
+		Taps::Utils.calculate_chunksize(3000) { }.should == 1000
+	end
+
+	it "scales up chunksize fast when the time delta of the block is under 0.8 seconds" do
+		Time.stubs(:now).returns(10.0).returns(10.7)
+		Taps::Utils.calculate_chunksize(1000) { }.should == 2000
+	end
+
+	it "scales up chunksize slow when the time delta of the block is between 0.8 and 1.1 seconds" do
+		Time.stubs(:now).returns(10.0).returns(10.8)
+		Taps::Utils.calculate_chunksize(1000) { }.should == 1100
+
+		Time.stubs(:now).returns(10.0).returns(11.1)
+		Taps::Utils.calculate_chunksize(1000) { }.should == 1100
+	end
 end
 

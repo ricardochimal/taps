@@ -6,7 +6,7 @@ require File.dirname(__FILE__) + '/../lib/taps/config'
 cmd = ARGV.shift.downcase.strip rescue ''
 Taps::Config.database_url = ARGV.shift.strip rescue ''
 
-ChunkSize = 500
+ChunkSize = 1000
 
 def show_usage_and_exit
 	puts <<-EOTXT
