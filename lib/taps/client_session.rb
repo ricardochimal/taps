@@ -4,6 +4,7 @@ require 'json'
 require 'zlib'
 
 require File.dirname(__FILE__) + '/progress_bar'
+require File.dirname(__FILE__) + '/utils'
 
 module Taps
 class ClientSession
@@ -86,11 +87,9 @@ class ClientSession
 			offset = 0
 			loop do
 				response = session_resource["#{table_name}/#{chunk_size}?offset=#{offset}"].get
-				crc32 = response.headers[:taps_crc32].to_i
-				raw_data = response.to_s
 				# retry the same page if the data was corrupted
-				next if Zlib.crc32(raw_data) != crc32
-				rows = Marshal.load(raw_data)
+				next unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
+				rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
 				break if rows.size == 0
 
 				db.transaction do
