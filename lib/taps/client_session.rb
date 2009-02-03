@@ -90,14 +90,12 @@ class ClientSession
 				# retry the same page if the data was corrupted
 				next unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
 				rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
-				break if rows.size == 0
+				break if rows == { }
 
-				db.transaction do
-					rows.each { |row| table << row }
-				end
+				table.multi_insert(rows[:header], rows[:data])
 
-				progress.inc(rows.size)
-				offset += rows.size
+				progress.inc(rows[:data].size)
+				offset += rows[:data].size
 			end
 
 			progress.finish
