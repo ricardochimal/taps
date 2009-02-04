@@ -1,6 +1,9 @@
 require 'sequel'
 
 module Taps
+
+VERSION = '0.2.0'
+
 class Config
 	class << self
 		attr_accessor :taps_database_url

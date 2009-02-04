@@ -42,12 +42,12 @@ class ClientSession
 	end
 
 	def open_session
-		uri = server['sessions'].post ''
+		uri = server['sessions'].post('', :taps_version => Taps::VERSION)
 		server[uri]
 	end
 
 	def close_session
-		@session_resource.delete if @session_resource
+		@session_resource.delete(:taps_version => Taps::VERSION) if @session_resource
 	end
 
 	def cmd_send
@@ -61,7 +61,7 @@ class ClientSession
 			page = 1
 			while (page-1)*ChunkSize < count
 				data = table.order(:id).paginate(page, ChunkSize).all.to_json
-				session_resource[table_name].post data
+				session_resource[table_name].post(data, :taps_version => Taps::VERSION)
 				print "."
 				page += 1
 			end
@@ -71,6 +71,7 @@ class ClientSession
 	end
 
 	def cmd_receive
+		verify_version
 		cmd_receive_schema
 		cmd_receive_data
 		cmd_receive_indexes
@@ -80,7 +81,7 @@ class ClientSession
 	def cmd_receive_data
 		puts "Receiving data from remote taps server #{remote_url} into local database #{database_url}"
 
-		tables_with_counts = Marshal.load(session_resource['tables'].get)
+		tables_with_counts = Marshal.load(session_resource['tables'].get(:taps_version => Taps::VERSION))
 		record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
 
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
@@ -95,7 +96,7 @@ class ClientSession
 			loop do
 				response = nil
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do
-					response = session_resource["#{table_name}/#{chunksize}?offset=#{offset}"].get
+					response = session_resource["#{table_name}/#{chunksize}?offset=#{offset}"].get(:taps_version => Taps::VERSION)
 				end
 				# retry the same page if the data was corrupted
 				next unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
@@ -116,7 +117,7 @@ class ClientSession
 		puts "Receiving schema from remote taps server #{remote_url} into local database #{database_url}"
 
 		require 'tempfile'
-		schema_data = session_resource['schema'].get
+		schema_data = session_resource['schema'].get(:taps_version => Taps::VERSION)
 
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(schema_data) }
@@ -128,7 +129,7 @@ class ClientSession
 		puts "Receiving schema indexes from remote taps server #{remote_url} into local database #{database_url}"
 
 		require 'tempfile'
-		index_data = session_resource['indexes'].get
+		index_data = session_resource['indexes'].get(:taps_version => Taps::VERSION)
 
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(index_data) }
@@ -144,6 +145,18 @@ class ClientSession
 
 	def format_number(num)
 		num.to_s.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
+	end
+
+	def verify_version
+		server['/'].get(:taps_version => Taps::VERSION)
+	rescue RestClient::RequestFailed => e
+		if e.http_code == 417
+			puts "#{remote_url} is running a different version of taps."
+			puts "#{e.response.body}"
+			exit(1)
+		else
+			raise
+		end
 	end
 end
 end

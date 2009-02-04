@@ -17,6 +17,12 @@ class Server < Sinatra::Base
 		"Application error"
 	end
 
+	before do
+		unless request.env['HTTP_TAPS_VERSION'] == Taps::VERSION
+			halt 417, "Taps version #{Taps::VERSION} is required for this server"
+		end
+	end
+
 	get '/' do
 		"hello"
 	end
