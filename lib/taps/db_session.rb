@@ -20,4 +20,6 @@ class DbSession < Sequel::Model
 	end
 end
 
+DbSession.db = Sequel.connect(Taps::Config.taps_database_url)
+
 DbSession.create_table unless DbSession.table_exists?

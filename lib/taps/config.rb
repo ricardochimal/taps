@@ -3,6 +3,7 @@ require 'sequel'
 module Taps
 class Config
 	class << self
+		attr_accessor :taps_database_url
 		attr_accessor :login, :password, :database_url, :remote_url
 		attr_accessor :chunksize
 

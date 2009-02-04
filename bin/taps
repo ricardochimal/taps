@@ -1,64 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-require File.dirname(__FILE__) + '/../lib/taps/config'
+require File.dirname(__FILE__) + '/../lib/taps/cli'
 
-cmd = ARGV.shift.downcase.strip rescue ''
-Taps::Config.database_url = ARGV.shift.strip rescue ''
-
-ChunkSize = 1000
-
-def show_usage_and_exit
-	puts <<-EOTXT
-usage: taps server <database_url> <login> <password>
-       taps receive <database_url> <remote_url>
-       taps send <database_url> <remote_url>
-	EOTXT
-	exit 1
-end
-
-show_usage_and_exit if cmd == '' or Taps::Config.database_url == ''
-
-require 'sequel'
-
-Sequel.connect('sqlite://taps.db')   # database for taps' own models
-
-begin
-	db = Sequel.connect(Taps::Config.database_url)
-	db.tables
-	db.disconnect
-rescue => e
-	puts "Failed to connect to database:\n  #{e.class} -> #{e}"
-	exit
-end
-
-if cmd == 'server'
-	Taps::Config.login = ARGV.shift.strip rescue ''
-	Taps::Config.password = ARGV.shift.strip rescue ''
-
-	show_usage_and_exit if Taps::Config.login == '' or Taps::Config.password == ''
-
-	puts "Taps database import/export server"
-	puts "Using database: #{Taps::Config.database_url}"
-	puts "Using login: #{Taps::Config.login}"
-	puts "Using password: #{Taps::Config.password}"
-
-	require 'sinatra'
-	set :database_url, Taps::Config.database_url
-	set :port, 5000
-	set :environment, 'production'
-
-	require File.dirname(__FILE__) + '/../lib/taps/server'
-elsif cmd.match(/^(send|receive)(:(schema|data))?$/)
-	Taps::Config.remote_url = ARGV.shift.strip rescue ''
-	show_usage_and_exit if Taps::Config.remote_url == ''
-
-	require File.dirname(__FILE__) + '/../lib/taps/client_session'
-
-	Taps::ClientSession.start(Taps::Config.database_url, Taps::Config.remote_url) do |session|
-		session.send "cmd_#{cmd.gsub(/:/, '_')}".to_sym
-	end
-else
-	show_usage_and_exit
-end
-
+Taps::Cli.start
