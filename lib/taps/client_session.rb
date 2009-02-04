@@ -89,7 +89,7 @@ class ClientSession
 			table = db[table_name.to_sym]
 			chunksize = default_chunksize
 
-			progress = ProgressBar.new(table_name, count)
+			progress = ProgressBar.new(table_name.to_s, count)
 
 			offset = 0
 			loop do

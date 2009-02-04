@@ -20,6 +20,7 @@ class Cli < Thor
 		Taps::Server.run!({
 			:port => port,
 			:environment => :production,
+			:logging => true
 		})
 	end
 
@@ -35,6 +36,8 @@ class Cli < Thor
 		Taps::Config.remote_url = remote_url
 
 		Taps::Config.verify_database_url
+
+		require File.dirname(__FILE__) + '/client_session'
 
 		Taps::ClientSession.quickstart do |session|
 			session.cmd_receive
