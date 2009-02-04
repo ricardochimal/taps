@@ -3,13 +3,14 @@ require File.dirname(__FILE__) + '/../lib/taps/client_session'
 
 describe Taps::ClientSession do
 	before do
-		@client = Taps::ClientSession.new('sqlite://my.db', 'http://example.com:3000')
+		@client = Taps::ClientSession.new('sqlite://my.db', 'http://example.com:3000', 1000)
 	end
 
 	it "starts a session and yields the session object to the block" do
-		Taps::ClientSession.start('x', 'y') do |session|
+		Taps::ClientSession.start('x', 'y', 1000) do |session|
 			session.database_url.should == 'x'
 			session.remote_url.should == 'y'
+			session.default_chunksize.should == 1000
 		end
 	end
 

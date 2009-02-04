@@ -4,21 +4,29 @@ require 'json'
 require 'zlib'
 
 require File.dirname(__FILE__) + '/progress_bar'
+require File.dirname(__FILE__) + '/config'
 require File.dirname(__FILE__) + '/utils'
 
 module Taps
 class ClientSession
-	attr_reader :database_url, :remote_url
+	attr_reader :database_url, :remote_url, :default_chunksize
 
-	def initialize(database_url, remote_url)
+	def initialize(database_url, remote_url, default_chunksize)
 		@database_url = database_url
 		@remote_url = remote_url
+		@default_chunksize = default_chunksize
 	end
 
-	def self.start(database_url, remote_url, &block)
-		s = new(database_url, remote_url)
+	def self.start(database_url, remote_url, default_chunksize, &block)
+		s = new(database_url, remote_url, default_chunksize)
 		yield s
 		s.close_session
+	end
+
+	def self.quickstart(&block)
+		start(Taps::Config.database_url, Taps::Config.remote_url, Taps::Config.chunksize) do |s|
+			yield s
+		end
 	end
 
 	def db
@@ -43,7 +51,7 @@ class ClientSession
 	end
 
 	def cmd_send
-		puts "Sending schema and data from local database #{@database_url} to remote taps server at #{@remote_url}"
+		puts "Sending schema and data from local database #{database_url} to remote taps server at #{remote_url}"
 
 		db.tables.each do |table_name|
 			table = db[table_name]
@@ -70,25 +78,24 @@ class ClientSession
 	end
 
 	def cmd_receive_data
-		puts "Receiving data from remote taps server #{@remote_url} into local database #{@database_url}"
+		puts "Receiving data from remote taps server #{remote_url} into local database #{database_url}"
 
-		tables_with_counts = JSON.parse session_resource['tables'].get
+		tables_with_counts = Marshal.load(session_resource['tables'].get)
 		record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
 
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
 		tables_with_counts.each do |table_name, count|
 			table = db[table_name.to_sym]
-			pages = (count / ChunkSize).round
-			chunk_size = ChunkSize
+			chunksize = default_chunksize
 
 			progress = ProgressBar.new(table_name, count)
 
 			offset = 0
 			loop do
 				response = nil
-				chunk_size = Taps::Utils.calculate_chunksize(chunk_size) do
-					response = session_resource["#{table_name}/#{chunk_size}?offset=#{offset}"].get
+				chunksize = Taps::Utils.calculate_chunksize(chunksize) do
+					response = session_resource["#{table_name}/#{chunksize}?offset=#{offset}"].get
 				end
 				# retry the same page if the data was corrupted
 				next unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
@@ -106,33 +113,33 @@ class ClientSession
 	end
 
 	def cmd_receive_schema
-		puts "Receiving schema from remote taps server #{@remote_url} into local database #{@database_url}"
+		puts "Receiving schema from remote taps server #{remote_url} into local database #{database_url}"
 
 		require 'tempfile'
 		schema_data = session_resource['schema'].get
 
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(schema_data) }
-			puts `#{File.dirname(__FILE__)}/../../bin/schema load #{@database_url} #{tmp.path}`
+			puts `#{File.dirname(__FILE__)}/../../bin/schema load #{database_url} #{tmp.path}`
 		end
 	end
 
 	def cmd_receive_indexes
-		puts "Receiving schema indexes from remote taps server #{@remote_url} into local database #{@database_url}"
+		puts "Receiving schema indexes from remote taps server #{remote_url} into local database #{database_url}"
 
 		require 'tempfile'
 		index_data = session_resource['indexes'].get
 
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(index_data) }
-			puts `#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{@database_url} #{tmp.path}`
+			puts `#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{database_url} #{tmp.path}`
 		end
 	end
 
 	def cmd_reset_db_sequences
-		puts "Resetting db sequences in #{@database_url}"
+		puts "Resetting db sequences in #{database_url}"
 
-		puts `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{@database_url}`
+		puts `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
 	end
 
 	def format_number(num)

@@ -76,7 +76,7 @@ get '/sessions/:key/tables' do
 		accum
 	end
 
-	tables_with_counts.to_json
+	Marshal.dump(tables_with_counts)
 end
 
 get '/sessions/:key/:table/:chunk' do
