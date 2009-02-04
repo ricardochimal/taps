@@ -28,7 +28,7 @@ class Server < Sinatra::Base
 
 	post '/sessions/:key/:table' do
 		session = DbSession.filter(:key => params[:key]).first
-		stop 404 unless session
+		halt 404 unless session
 
 		data = JSON.parse request.body.string
 
@@ -44,7 +44,7 @@ class Server < Sinatra::Base
 
 	get '/sessions/:key/schema' do
 		session = DbSession.filter(:key => params[:key]).first
-		stop 404 unless session
+		halt 404 unless session
 
 		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
 		`#{schema_app} dump #{session.database_url}`
@@ -52,7 +52,7 @@ class Server < Sinatra::Base
 
 	get '/sessions/:key/indexes' do
 		session = DbSession.filter(:key => params[:key]).first
-		stop 404 unless session
+		halt 404 unless session
 
 		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
 		`#{schema_app} indexes #{session.database_url}`
@@ -60,7 +60,7 @@ class Server < Sinatra::Base
 
 	get '/sessions/:key/tables' do
 		session = DbSession.filter(:key => params[:key]).first
-		stop 404 unless session
+		halt 404 unless session
 
 		db = session.connection
 		tables = db.tables
@@ -75,7 +75,7 @@ class Server < Sinatra::Base
 
 	get '/sessions/:key/:table/:chunk' do
 		session = DbSession.filter(:key => params[:key]).first
-		stop 404 unless session
+		halt 404 unless session
 
 		chunk = params[:chunk].to_i
 		chunk = 500 if chunk < 1
@@ -96,7 +96,7 @@ class Server < Sinatra::Base
 
 	delete '/sessions/:key' do
 		session = DbSession.filter(:key => params[:key]).first
-		stop 404 unless session
+		halt 404 unless session
 
 		session.disconnect
 		session.destroy
