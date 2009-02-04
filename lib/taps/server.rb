@@ -17,6 +17,10 @@ class Server < Sinatra::Base
 		"Application error"
 	end
 
+	get '/' do
+		"hello"
+	end
+
 	post '/sessions' do
 		key = rand(9999999999).to_s
 		database_url = Taps::Config.database_url || request.body.string

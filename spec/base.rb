@@ -15,3 +15,7 @@ class Bacon::Context
 		end
 	end
 end
+
+require File.dirname(__FILE__) + '/../lib/taps/config'
+Taps::Config.taps_database_url = 'sqlite://test.db'
+Sequel.connect(Taps::Config.taps_database_url)
