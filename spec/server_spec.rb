@@ -10,13 +10,11 @@ describe Taps::Server do
 	before do
 		Taps::Config.login = 'taps'
 		Taps::Config.password = 'tpass'
+		@app = Taps::Server
 	end
 
 	it "asks for http basic authentication" do
 		get '/'
-		puts "response: #{response}"
-		puts "status: #{status}"
-		pp response
 		status.should == 401
 	end
 end
