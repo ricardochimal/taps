@@ -67,6 +67,14 @@ class Server < Sinatra::Base
 		Taps::Utils.load_schema(session.database_url, schema_data)
 	end
 
+	post '/sessions/:key/indexes' do
+		session = DbSession.filter(:key => params[:key]).first
+		halt 404 unless session
+
+		index_data = request.body.read
+		Taps::Utils.load_indexes(session.database_url, index_data)
+	end
+
 	get '/sessions/:key/schema' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session

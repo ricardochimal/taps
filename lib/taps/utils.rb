@@ -65,5 +65,12 @@ module Utils
 			`#{File.dirname(__FILE__)}/../../bin/schema load #{database_url} #{tmp.path}`
 		end
 	end
+
+	def load_indexes(database_url, index_data)
+		Tempfile.open('taps') do |tmp|
+			File.open(tmp.path, 'w') { |f| f.write(index_data) }
+			`#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{database_url} #{tmp.path}`
+		end
+	end
 end
 end

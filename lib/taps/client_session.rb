@@ -53,13 +53,20 @@ class ClientSession
 		verify_server
 		cmd_send_schema
 		cmd_send_data
+		cmd_send_indexes
 		cmd_send_reset_sequences
+	end
+
+	def cmd_send_indexes
+		puts "Sending schema indexes to remote taps server #{remote_url} from local database #{database_url}"
+
+		index_data = `#{File.dirname(__FILE__)}/../../bin/schema indexes #{database_url}`
+		session_resource['indexes'].post(index_data, :taps_version => Taps::VERSION)
 	end
 
 	def cmd_send_schema
 		puts "Sending schema to remote taps server #{remote_url} from local database #{database_url}"
 
-		require 'tempfile'
 		schema_data = `#{File.dirname(__FILE__)}/../../bin/schema dump #{database_url}`
 		session_resource['schema'].post(schema_data, :taps_version => Taps::VERSION)
 	end
@@ -182,13 +189,9 @@ class ClientSession
 	def cmd_receive_indexes
 		puts "Receiving schema indexes from remote taps server #{remote_url} into local database #{database_url}"
 
-		require 'tempfile'
 		index_data = session_resource['indexes'].get(:taps_version => Taps::VERSION)
 
-		Tempfile.open('taps') do |tmp|
-			File.open(tmp.path, 'w') { |f| f.write(index_data) }
-			puts `#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{database_url} #{tmp.path}`
-		end
+		puts Taps::Utils.load_indexes(database_url, index_data)
 	end
 
 	def cmd_reset_sequences
