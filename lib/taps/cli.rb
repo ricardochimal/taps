@@ -27,6 +27,16 @@ class Cli < Thor
 	desc "receive <local_database_url> <remote_url>", "Receive database from a taps server"
 	method_options(:chunksize => :numeric)
 	def receive(database_url, remote_url)
+		clientxfer(:cmd_receive, database_url, remote_url)
+	end
+
+	desc "senddata <local_database_url> <remote_url>", "Send only database data to a taps server"
+	method_options(:chunksize => :numeric)
+	def senddata(database_url, remote_url)
+		clientxfer(:cmd_send, database_url, remote_url)
+	end
+
+	def clientxfer(method, database_url, remote_url)
 		if options[:chunksize]
 			Taps::Config.chunksize = options[:chunksize] < 100 ? 100 : options[:chunksize]
 		else
@@ -40,7 +50,7 @@ class Cli < Thor
 		require File.dirname(__FILE__) + '/client_session'
 
 		Taps::ClientSession.quickstart do |session|
-			session.cmd_receive
+			session.send(method)
 		end
 	end
 end

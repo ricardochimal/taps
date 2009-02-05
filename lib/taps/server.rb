@@ -35,20 +35,27 @@ class Server < Sinatra::Base
 		"/sessions/#{key}"
 	end
 
-	post '/sessions/:key/:table' do
+	post '/sessions/:key/tables/:table' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		data = JSON.parse request.body.string
+		gzip_data = request.body.read
+		halt 412 unless Taps::Utils.valid_data?(gzip_data, request.env['HTTP_TAPS_CHECKSUM'])
+
+		rows = Marshal.load(Taps::Utils.gunzip(gzip_data))
 
 		db = session.connection
 		table = db[params[:table].to_sym]
+		table.multi_insert(rows[:header], rows[:data])
 
-		db.transaction do
-			data.each { |row| table << row }
-		end
+		"#{rows[:data].size}"
+	end
 
-		"#{data.size} records loaded"
+	post '/sessions/:key/reset_sequences' do
+		session = DbSession.filter(:key => params[:key]).first
+		halt 404 unless session
+
+		`#{schema_app} reset_db_sequences #{session.database_url}`
 	end
 
 	get '/sessions/:key/schema' do

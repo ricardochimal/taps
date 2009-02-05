@@ -50,22 +50,56 @@ class ClientSession
 	end
 
 	def cmd_send
+		verify_version
+		cmd_send_data
+		cmd_send_reset_sequences
+	end
+
+	def cmd_send_reset_sequences
+		puts "Resetting db sequences in remote taps server at #{remote_url}"
+
+		session_resource["reset_sequences"].post('', :taps_version => Taps::VERSION)
+	end
+
+	def cmd_send_data
 		puts "Sending schema and data from local database #{database_url} to remote taps server at #{remote_url}"
 
 		db.tables.each do |table_name|
 			table = db[table_name]
 			count = table.count
-			puts "#{table_name} - #{count} records"
+			columns = table.columns
+			order = columns.include?(:id) ? :id : columns.first
+			chunksize = self.default_chunksize
 
-			page = 1
-			while (page-1)*ChunkSize < count
-				data = table.order(:id).paginate(page, ChunkSize).all.to_json
-				session_resource[table_name].post(data, :taps_version => Taps::VERSION)
-				print "."
-				page += 1
+			progress = ProgressBar.new(table_name.to_s, count)
+
+			offset = 0
+			loop do
+				rows = Taps::Utils.format_data(table.order(order).limit(chunksize, offset).all)
+				break if rows == { }
+
+				gzip_data = Taps::Utils.gzip(Marshal.dump(rows))
+
+				chunksize = Taps::Utils.calculate_chunksize(chunksize) do
+					begin
+						session_resource["tables/#{table_name}"].post(gzip_data,
+							:taps_version => Taps::VERSION,
+							:content_type => 'application/octet-stream',
+							:taps_checksum => Taps::Utils.checksum(gzip_data).to_s)
+					rescue RestClient::RequestFailed => e
+						# retry the same data, it got corrupted somehow.
+						if e.http_code == 412
+							next
+						end
+						raise
+					end
+				end
+
+				progress.inc(rows[:data].size)
+				offset += rows[:data].size
 			end
 
-			puts "done."
+			progress.finish
 		end
 	end
 
