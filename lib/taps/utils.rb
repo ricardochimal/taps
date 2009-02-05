@@ -1,6 +1,7 @@
 require 'zlib'
 require 'stringio'
 require 'time'
+require 'tempfile'
 
 module Taps
 module Utils
@@ -56,6 +57,13 @@ module Utils
 		end
 		new_chunksize = 100 if new_chunksize < 100
 		new_chunksize
+	end
+
+	def load_schema(database_url, schema_data)
+		Tempfile.open('taps') do |tmp|
+			File.open(tmp.path, 'w') { |f| f.write(schema_data) }
+			`#{File.dirname(__FILE__)}/../../bin/schema load #{database_url} #{tmp.path}`
+		end
 	end
 end
 end

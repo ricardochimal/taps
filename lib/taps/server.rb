@@ -55,7 +55,16 @@ class Server < Sinatra::Base
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
+		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
 		`#{schema_app} reset_db_sequences #{session.database_url}`
+	end
+
+	post '/sessions/:key/schema' do
+		session = DbSession.filter(:key => params[:key]).first
+		halt 404 unless session
+
+		schema_data = request.body.read
+		Taps::Utils.load_schema(session.database_url, schema_data)
 	end
 
 	get '/sessions/:key/schema' do
