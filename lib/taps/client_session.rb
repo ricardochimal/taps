@@ -50,7 +50,7 @@ class ClientSession
 	end
 
 	def cmd_send
-		verify_version
+		verify_server
 		cmd_send_data
 		cmd_send_reset_sequences
 	end
@@ -104,7 +104,7 @@ class ClientSession
 	end
 
 	def cmd_receive
-		verify_version
+		verify_server
 		cmd_receive_schema
 		cmd_receive_data
 		cmd_receive_indexes
@@ -197,15 +197,20 @@ class ClientSession
 		num.to_s.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
 	end
 
-	def verify_version
-		server['/'].get(:taps_version => Taps::VERSION)
-	rescue RestClient::RequestFailed => e
-		if e.http_code == 417
-			puts "#{remote_url} is running a different version of taps."
-			puts "#{e.response.body}"
+	def verify_server
+		begin
+			server['/'].get(:taps_version => Taps::VERSION)
+		rescue RestClient::RequestFailed => e
+			if e.http_code == 417
+				puts "#{remote_url} is running a different version of taps."
+				puts "#{e.response.body}"
+				exit(1)
+			else
+				raise
+			end
+		rescue RestClient::Unauthorized
+			puts "Bad credentials given for #{remote_url}"
 			exit(1)
-		else
-			raise
 		end
 	end
 end

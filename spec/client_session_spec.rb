@@ -25,7 +25,7 @@ describe Taps::ClientSession do
 	end
 
 	it "verifies the db version, receive the schema, data, indexes, then reset the sequences" do
-		@client.expects(:verify_version)
+		@client.expects(:verify_server)
 		@client.expects(:cmd_receive_schema)
 		@client.expects(:cmd_receive_data)
 		@client.expects(:cmd_receive_indexes)
@@ -39,7 +39,7 @@ describe Taps::ClientSession do
 		@client.server.expects(:[]).with('/').returns(@request)
 		@request.expects(:get).with({:taps_version => Taps::VERSION})
 
-		lambda { @client.verify_version }.should.not.raise
+		lambda { @client.verify_server }.should.not.raise
 	end
 
 	it "receives data from a remote taps server" do
