@@ -2,7 +2,6 @@ require 'sinatra/base'
 require File.dirname(__FILE__) + '/config'
 require File.dirname(__FILE__) + '/utils'
 require File.dirname(__FILE__) + '/db_session'
-require 'json'
 
 module Taps
 class Server < Sinatra::Base
@@ -83,7 +82,7 @@ class Server < Sinatra::Base
 		Marshal.dump(tables_with_counts)
 	end
 
-	get '/sessions/:key/:table/:chunk' do
+	get '/sessions/:key/tables/:table/:chunk' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 

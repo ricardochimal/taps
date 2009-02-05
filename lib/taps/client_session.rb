@@ -1,6 +1,5 @@
 require 'rest_client'
 require 'sequel'
-require 'json'
 require 'zlib'
 
 require File.dirname(__FILE__) + '/progress_bar'
@@ -75,14 +74,13 @@ class ClientSession
 		cmd_receive_schema
 		cmd_receive_data
 		cmd_receive_indexes
-		cmd_reset_db_sequences
+		cmd_reset_sequences
 	end
 
 	def cmd_receive_data
 		puts "Receiving data from remote taps server #{remote_url} into local database #{database_url}"
 
-		tables_with_counts = Marshal.load(session_resource['tables'].get(:taps_version => Taps::VERSION))
-		record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
+		tables_with_counts, record_count = fetch_tables_info
 
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
@@ -94,13 +92,11 @@ class ClientSession
 
 			offset = 0
 			loop do
-				response = nil
-				chunksize = Taps::Utils.calculate_chunksize(chunksize) do
-					response = session_resource["#{table_name}/#{chunksize}?offset=#{offset}"].get(:taps_version => Taps::VERSION)
+				begin
+					chunksize, rows = fetch_table_rows(table_name, chunksize, offset)
+				rescue CorruptedData
+					next
 				end
-				# retry the same page if the data was corrupted
-				next unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
-				rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
 				break if rows == { }
 
 				table.multi_insert(rows[:header], rows[:data])
@@ -111,6 +107,26 @@ class ClientSession
 
 			progress.finish
 		end
+	end
+
+	class CorruptedData < Exception; end
+
+	def fetch_table_rows(table_name, chunksize, offset)
+		response = nil
+		chunksize = Taps::Utils.calculate_chunksize(chunksize) do
+			response = session_resource["tables/#{table_name}/#{chunksize}?offset=#{offset}"].get(:taps_version => Taps::VERSION)
+		end
+		raise CorruptedData unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
+
+		rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
+		[chunksize, rows]
+	end
+
+	def fetch_tables_info
+		tables_with_counts = Marshal.load(session_resource['tables'].get(:taps_version => Taps::VERSION))
+		record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
+
+		[ tables_with_counts, record_count ]
 	end
 
 	def cmd_receive_schema
@@ -137,7 +153,7 @@ class ClientSession
 		end
 	end
 
-	def cmd_reset_db_sequences
+	def cmd_reset_sequences
 		puts "Resetting db sequences in #{database_url}"
 
 		puts `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
