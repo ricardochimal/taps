@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+gem 'activerecord', '>= 2.2.2'
+gem 'activesupport', '>= 2.2.2'
+
 require File.dirname(__FILE__) + '/../lib/taps/schema'
 
 cmd = ARGV.shift.strip rescue ''

@@ -1,6 +1,3 @@
-require 'rubygems'
-gem 'activerecord', '>= 2.2.2'
-gem 'activesupport', '>= 2.2.2'
 require 'active_record'
 require 'active_support'
 require 'stringio'
