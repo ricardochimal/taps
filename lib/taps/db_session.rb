@@ -1,3 +1,5 @@
+Sequel::Model.db = Sequel.connect(Taps::Config.taps_database_url)
+
 class DbSession < Sequel::Model
 	set_schema do
 		primary_key :id
@@ -20,6 +22,4 @@ class DbSession < Sequel::Model
 	end
 end
 
-DbSession.db = Sequel.connect(Taps::Config.taps_database_url)
-
-DbSession.create_table unless DbSession.table_exists?
+DbSession.create_table! unless DbSession.table_exists?
