@@ -1,0 +1,23 @@
+= Taps -- simple database import/export app
+
+A simple database agnostic import/export app to transfer data to/from a remote database.
+
+== Usage: Server
+
+  $ taps server postgres://localdbuser:localdbpass@localhost/dbname user password
+
+== Usage: Client
+
+  $ taps receive postgres://dbuser:dbpassword@localhost/dbname http://user:password@example.com:5000
+
+== Meta
+
+Maintained by Ricardo Chimal, Jr. (ricardo at heroku dot com)
+
+Written by Ricardo Chimal, Jr. (ricardo at heroku dot com) and Adam Wiggins (adam at heroku dot com)
+
+Early research and inspiration by Blake Mizerany
+
+Released under the MIT License: http://www.opensource.org/licenses/mit-license.php
+
+http://github.com/ricardochimal/taps
