@@ -227,6 +227,9 @@ class ClientSession
 		rescue RestClient::Unauthorized
 			puts "Bad credentials given for #{remote_url}"
 			exit(1)
+		rescue Errno::ECONNREFUSED
+			puts "Can't connect to #{remote_url}. Please check that it's running"
+			exit(1)
 		end
 	end
 end
