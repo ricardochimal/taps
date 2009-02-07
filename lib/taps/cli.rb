@@ -5,7 +5,7 @@ Taps::Config.taps_database_url = 'sqlite://taps.db'
 
 module Taps
 class Cli < Thor
-	desc "server <local_database_url> <login> <password>", "Database import/export server"
+	desc "server <local_database_url> <login> <password>", "Start a taps database import/export server"
 	method_options(:port => :numeric)
 	def server(database_url, login, password)
 		Taps::Config.database_url = database_url
@@ -24,15 +24,15 @@ class Cli < Thor
 		})
 	end
 
-	desc "receive <local_database_url> <remote_url>", "Receive database from a taps server"
+	desc "pull <local_database_url> <remote_url>", "Pull a database from a taps server"
 	method_options(:chunksize => :numeric)
 	def receive(database_url, remote_url)
 		clientxfer(:cmd_receive, database_url, remote_url)
 	end
 
-	desc "senddata <local_database_url> <remote_url>", "Send only database data to a taps server"
+	desc "push <local_database_url> <remote_url>", "Push a database to a taps server"
 	method_options(:chunksize => :numeric)
-	def senddata(database_url, remote_url)
+	def push(database_url, remote_url)
 		clientxfer(:cmd_send, database_url, remote_url)
 	end
 

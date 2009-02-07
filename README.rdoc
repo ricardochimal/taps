@@ -8,13 +8,13 @@ A simple database agnostic import/export app to transfer data to/from a remote d
 
 == Usage: Client
 
-When you want to pull down a database
+When you want to pull down a database from a taps server
 
-  $ taps receive postgres://dbuser:dbpassword@localhost/dbname http://user:password@example.com:5000
+  $ taps pull postgres://dbuser:dbpassword@localhost/dbname http://user:password@example.com:5000
 
-or when you want to push a database
+or when you want to push a local database to a taps server
 
-  $ taps senddata postgres://dbuser:dbpassword@localhost/dbname http://user:password@example.com:5000
+  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://user:password@example.com:5000
 
 == Meta
 
