@@ -14,9 +14,11 @@ begin
     s.add_dependency 'rest-client', '~> 0.9.0'
     s.add_dependency 'sequel', '~> 2.10.0'
 
+    s.rubyforge_project = "taps"
     s.rubygems_version = '1.3.1'
 
-    s.executables = ['taps']
+    s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile']
+    s.executables = ['taps', 'schema']
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
