@@ -26,7 +26,7 @@ class Cli < Thor
 
 	desc "pull <local_database_url> <remote_url>", "Pull a database from a taps server"
 	method_options(:chunksize => :numeric)
-	def receive(database_url, remote_url)
+	def pull(database_url, remote_url)
 		clientxfer(:cmd_receive, database_url, remote_url)
 	end
 
