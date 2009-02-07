@@ -173,8 +173,17 @@ class ClientSession
 	end
 
 	def fetch_tables_info
-		tables_with_counts = Marshal.load(session_resource['tables'].get(:taps_version => Taps::VERSION))
-		record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
+		retries = 0
+		max_retries = 1
+		begin
+			tables_with_counts = Marshal.load(session_resource['tables'].get(:taps_version => Taps::VERSION))
+			record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
+		rescue RestClient::Exception
+			retries += 1
+			retry if retries <= max_retries
+			puts "Unable to fetch tables information from #{remote_url}. Please check the server log."
+			exit(1)
+		end
 
 		[ tables_with_counts, record_count ]
 	end
