@@ -192,7 +192,8 @@ class ClientSession
 		puts "Receiving schema from remote taps server #{remote_url} into local database #{database_url}"
 
 		schema_data = session_resource['schema'].get(:taps_version => Taps::VERSION)
-		puts Taps::Utils.load_schema(database_url, schema_data)
+		output = Taps::Utils.load_schema(database_url, schema_data)
+		puts output if output
 	end
 
 	def cmd_receive_indexes
