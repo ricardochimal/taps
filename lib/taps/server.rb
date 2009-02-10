@@ -4,15 +4,12 @@ require File.dirname(__FILE__) + '/utils'
 require File.dirname(__FILE__) + '/db_session'
 
 module Taps
-class Server < Sinatra::Base
+class Server < Sinatra::Default
 	use Rack::Auth::Basic do |login, password|
 		login == Taps::Config.login && password == Taps::Config.password
 	end
 
 	error do
-		e = request.env['sinatra.error']
-		puts e.to_s
-		puts e.backtrace.join("\n")
 		"Application error"
 	end
 
