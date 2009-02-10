@@ -6,6 +6,7 @@ gem 'thor', '= 0.9.9'
 gem 'rest-client', '~> 0.9.0'
 gem 'sinatra', '~> 0.9.0'
 gem 'sequel', '~> 2.10.0'
+gem 'sqlite3-ruby', '~> 1.2.0'
 
 require File.dirname(__FILE__) + '/../lib/taps/cli'
 
