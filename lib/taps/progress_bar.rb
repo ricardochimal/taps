@@ -17,7 +17,7 @@ class ProgressBar
     @total = total
     @out = out
     @terminal_width = 80
-    @bar_mark = "o"
+    @bar_mark = "="
     @current = 0
     @previous = 0
     @finished_p = false
