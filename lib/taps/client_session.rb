@@ -168,7 +168,13 @@ class ClientSession
 		end
 		raise CorruptedData unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
 
-		rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
+		begin
+			rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
+		rescue Object => e
+			puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.gz"
+			File.open("dump.#{Process.pid}.gz", "w") { |f| f.write(response.to_s) }
+			raise
+		end
 		[chunksize, rows]
 	end
 
