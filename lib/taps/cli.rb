@@ -1,7 +1,7 @@
 require 'thor'
 require File.dirname(__FILE__) + '/config'
 
-Taps::Config.taps_database_url = 'sqlite://taps.db'
+Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || 'sqlite://taps.db'
 
 module Taps
 class Cli < Thor
