@@ -45,6 +45,10 @@ class ClientSession
 		server[uri]
 	end
 
+	def set_session(uri)
+		@session_resource = server[uri]
+	end
+
 	def close_session
 		@session_resource.delete(:taps_version => Taps::VERSION) if @session_resource
 	end
