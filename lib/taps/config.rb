@@ -3,7 +3,7 @@ require 'sqlite3'
 
 module Taps
 
-VERSION = '0.2.2'
+VERSION = '0.2.3'
 
 class Config
 	class << self
