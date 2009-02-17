@@ -55,7 +55,6 @@ module Schema
 	def load(database_url, schema)
 		connection(database_url)
 		eval(schema)
-		ActiveRecord::Base.connection.execute("DELETE FROM schema_migrations") rescue nil
 	end
 
 	def load_indexes(database_url, indexes)
@@ -79,4 +78,20 @@ EORUBY
 		end
 	end
 end
+end
+
+module ActiveRecord
+	class SchemaDumper
+		private
+
+		def header(stream)
+			stream.puts "ActiveRecord::Schema.define do"
+		end
+
+		def tables(stream)
+			@connection.tables.sort.each do |tbl|
+				table(tbl, stream)
+			end
+		end
+	end
 end
