@@ -2,8 +2,14 @@ require 'sequel'
 require 'sqlite3'
 
 module Taps
+	def self.version_yml
+		@@version_yml ||= YAML.load(File.read(File.dirname(__FILE__) + '/../../VERSION.yml'))
+	end
 
-VERSION = '0.2.3'
+	def self.version
+		"#{version_yml[:major]}.#{version_yml[:minor]}.#{version_yml[:patch]}"
+	end
+
 
 class Config
 	class << self
