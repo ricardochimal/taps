@@ -4,7 +4,13 @@ A simple database agnostic import/export app to transfer data to/from a remote d
 
 == Usage: Server
 
+Here's how you start a taps server
+
   $ taps server postgres://localdbuser:localdbpass@localhost/dbname httpuser httppassword
+
+You can also specify an encoding in the database url
+
+  $ taps server mysql://localdbuser:localdbpass@localhost/dbname?encoding=latin1 httpuser httppassword
 
 == Usage: Client
 
