@@ -211,13 +211,15 @@ class ClientSession
 
 		index_data = session_resource['indexes'].get(:taps_version => Taps.version)
 
-		puts Taps::Utils.load_indexes(database_url, index_data)
+		output = Taps::Utils.load_indexes(database_url, index_data)
+		puts output if output
 	end
 
 	def cmd_reset_sequences
 		puts "Resetting db sequences in #{database_url}"
 
-		puts `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
+		output = `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
+		puts output if output
 	end
 
 	def format_number(num)
