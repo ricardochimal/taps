@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../lib/taps/schema'
 
 describe Taps::Schema do
 	before do
+		Taps::AdapterHacks.stubs(:load)
 		@connection = mock("AR connection")
 		ActiveRecord::Base.stubs(:connection).returns(@connection)
 	end

@@ -3,6 +3,8 @@ require 'active_support'
 require 'stringio'
 require 'uri'
 
+require File.dirname(__FILE__) + '/adapter_hacks'
+
 module Taps
 module Schema
 	extend self
@@ -23,6 +25,7 @@ module Schema
 
 	def connection(database_url)
 		config = create_config(database_url)
+		Taps::AdapterHacks.load(config['adapter'])
 		ActiveRecord::Base.establish_connection(config)
 	end
 
@@ -78,20 +81,4 @@ EORUBY
 		end
 	end
 end
-end
-
-module ActiveRecord
-	class SchemaDumper
-		private
-
-		def header(stream)
-			stream.puts "ActiveRecord::Schema.define do"
-		end
-
-		def tables(stream)
-			@connection.tables.sort.each do |tbl|
-				table(tbl, stream)
-			end
-		end
-	end
 end
