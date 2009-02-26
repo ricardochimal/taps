@@ -53,6 +53,18 @@ class ClientSession
 		@session_resource.delete(:taps_version => Taps.version) if @session_resource
 	end
 
+	def safe_url(url)
+		url.sub(/\/\/(.+?)?:(.*?)@/, '//\1:[hidden]@')
+	end
+
+	def safe_remote_url
+		safe_url(remote_url)
+	end
+
+	def safe_database_url
+		safe_url(database_url)
+	end
+
 	def cmd_send
 		verify_server
 		cmd_send_schema
@@ -62,27 +74,27 @@ class ClientSession
 	end
 
 	def cmd_send_indexes
-		puts "Sending schema indexes to remote taps server #{remote_url} from local database #{database_url}"
+		puts "Sending schema indexes to remote taps server #{safe_remote_url} from local database #{safe_database_url}"
 
 		index_data = `#{File.dirname(__FILE__)}/../../bin/schema indexes #{database_url}`
 		session_resource['indexes'].post(index_data, :taps_version => Taps.version)
 	end
 
 	def cmd_send_schema
-		puts "Sending schema to remote taps server #{remote_url} from local database #{database_url}"
+		puts "Sending schema to remote taps server #{safe_remote_url} from local database #{safe_database_url}"
 
 		schema_data = `#{File.dirname(__FILE__)}/../../bin/schema dump #{database_url}`
 		session_resource['schema'].post(schema_data, :taps_version => Taps.version)
 	end
 
 	def cmd_send_reset_sequences
-		puts "Resetting db sequences in remote taps server at #{remote_url}"
+		puts "Resetting db sequences in remote taps server at #{safe_remote_url}"
 
 		session_resource["reset_sequences"].post('', :taps_version => Taps.version)
 	end
 
 	def cmd_send_data
-		puts "Sending schema and data from local database #{database_url} to remote taps server at #{remote_url}"
+		puts "Sending schema and data from local database #{safe_database_url} to remote taps server at #{safe_remote_url}"
 
 		db.tables.each do |table_name|
 			table = db[table_name]
@@ -132,7 +144,7 @@ class ClientSession
 	end
 
 	def cmd_receive_data
-		puts "Receiving data from remote taps server #{remote_url} into local database #{database_url}"
+		puts "Receiving data from remote taps server #{safe_remote_url} into local database #{safe_database_url}"
 
 		tables_with_counts, record_count = fetch_tables_info
 
@@ -199,7 +211,7 @@ class ClientSession
 	end
 
 	def cmd_receive_schema
-		puts "Receiving schema from remote taps server #{remote_url} into local database #{database_url}"
+		puts "Receiving schema from remote taps server #{safe_remote_url} into local database #{safe_database_url}"
 
 		schema_data = session_resource['schema'].get(:taps_version => Taps.version)
 		output = Taps::Utils.load_schema(database_url, schema_data)
@@ -207,7 +219,7 @@ class ClientSession
 	end
 
 	def cmd_receive_indexes
-		puts "Receiving schema indexes from remote taps server #{remote_url} into local database #{database_url}"
+		puts "Receiving schema indexes from remote taps server #{safe_remote_url} into local database #{safe_database_url}"
 
 		index_data = session_resource['indexes'].get(:taps_version => Taps.version)
 
@@ -216,7 +228,7 @@ class ClientSession
 	end
 
 	def cmd_reset_sequences
-		puts "Resetting db sequences in #{database_url}"
+		puts "Resetting db sequences in #{safe_database_url}"
 
 		output = `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
 		puts output if output
@@ -238,10 +250,10 @@ class ClientSession
 				raise
 			end
 		rescue RestClient::Unauthorized
-			puts "Bad credentials given for #{remote_url}"
+			puts "Bad credentials given for #{safe_remote_url}"
 			exit(1)
 		rescue Errno::ECONNREFUSED
-			puts "Can't connect to #{remote_url}. Please check that it's running"
+			puts "Can't connect to #{safe_remote_url}. Please check that it's running"
 			exit(1)
 		end
 	end

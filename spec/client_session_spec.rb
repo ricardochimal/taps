@@ -78,5 +78,11 @@ describe Taps::ClientSession do
 		@response.stubs(:headers).returns({ :taps_checksum => Taps::Utils.checksum(@gzip_data) })
 		@client.fetch_table_rows('mytable', 1000, 0).should == [ 1000, { :header => [:x, :y], :data => [[1, 2], [3, 4]] } ]
 	end
+
+	it "hides the password in urls" do
+		@client.safe_url("postgres://postgres:password@localhost/mydb").should == "postgres://postgres:[hidden]@localhost/mydb"
+		@client.safe_url("postgres://postgres@localhost/mydb").should == "postgres://postgres@localhost/mydb"
+		@client.safe_url("http://x:y@localhost:5000").should == "http://x:[hidden]@localhost:5000"
+	end
 end
 
