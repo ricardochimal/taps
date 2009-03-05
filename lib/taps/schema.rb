@@ -21,6 +21,13 @@ module Schema
 			'password' => uri.password,
 			'host' => uri.host,
 		}
+		config = sqlite_config(url) if config['adapter'] == 'sqlite3'
+		config
+	end
+
+	def sqlite_config(url)
+		m = %r{(sqlite3?)://(.+)}.match(url)
+		{ 'adapter' => 'sqlite3', 'database' => m[2] }
 	end
 
 	def connection(database_url)

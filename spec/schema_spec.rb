@@ -19,7 +19,12 @@ describe Taps::Schema do
 	end
 
 	it "translates sqlite in the database url to sqlite3" do
-		Taps::Schema.create_config("sqlite://myuser:mypass@localhost/mydb")['adapter'].should == 'sqlite3'
+		Taps::Schema.create_config("sqlite://mydb")['adapter'].should == 'sqlite3'
+	end
+
+	it "translates sqlite database path" do
+		Taps::Schema.create_config("sqlite://pathtodb/mydb")['database'].should == 'pathtodb/mydb'
+		Taps::Schema.create_config("sqlite:///pathtodb/mydb")['database'].should == '/pathtodb/mydb'
 	end
 
 	it "connects activerecord to the database" do
