@@ -27,7 +27,9 @@ module Schema
 
 	def sqlite_config(url)
 		m = %r{(sqlite3?)://(.+)}.match(url)
-		{ 'adapter' => 'sqlite3', 'database' => m[2] }
+		database = m[2]
+		database, q = database.split('?')
+		{ 'adapter' => 'sqlite3', 'database' => database }
 	end
 
 	def connection(database_url)
