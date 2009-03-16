@@ -74,27 +74,27 @@ class ClientSession
 	end
 
 	def cmd_send_indexes
-		puts "Sending schema indexes to remote taps server #{safe_remote_url} from local database #{safe_database_url}"
+		puts "Sending indexes"
 
 		index_data = `#{File.dirname(__FILE__)}/../../bin/schema indexes #{database_url}`
 		session_resource['indexes'].post(index_data, :taps_version => Taps.version)
 	end
 
 	def cmd_send_schema
-		puts "Sending schema to remote taps server #{safe_remote_url} from local database #{safe_database_url}"
+		puts "Sending schema"
 
 		schema_data = `#{File.dirname(__FILE__)}/../../bin/schema dump #{database_url}`
 		session_resource['schema'].post(schema_data, :taps_version => Taps.version)
 	end
 
 	def cmd_send_reset_sequences
-		puts "Resetting db sequences in remote taps server at #{safe_remote_url}"
+		puts "Resetting sequences"
 
 		session_resource["reset_sequences"].post('', :taps_version => Taps.version)
 	end
 
 	def cmd_send_data
-		puts "Sending schema and data from local database #{safe_database_url} to remote taps server at #{safe_remote_url}"
+		puts "Sending data"
 
 		db.tables.each do |table_name|
 			table = db[table_name]
@@ -144,7 +144,7 @@ class ClientSession
 	end
 
 	def cmd_receive_data
-		puts "Receiving data from remote taps server #{safe_remote_url} into local database #{safe_database_url}"
+		puts "Receiving data"
 
 		tables_with_counts, record_count = fetch_tables_info
 
@@ -211,7 +211,7 @@ class ClientSession
 	end
 
 	def cmd_receive_schema
-		puts "Receiving schema from remote taps server #{safe_remote_url} into local database #{safe_database_url}"
+		puts "Receiving schema"
 
 		schema_data = session_resource['schema'].get(:taps_version => Taps.version)
 		output = Taps::Utils.load_schema(database_url, schema_data)
@@ -219,7 +219,7 @@ class ClientSession
 	end
 
 	def cmd_receive_indexes
-		puts "Receiving schema indexes from remote taps server #{safe_remote_url} into local database #{safe_database_url}"
+		puts "Receiving indexes"
 
 		index_data = session_resource['indexes'].get(:taps_version => Taps.version)
 
@@ -228,7 +228,7 @@ class ClientSession
 	end
 
 	def cmd_reset_sequences
-		puts "Resetting db sequences in #{safe_database_url}"
+		puts "Resetting sequences"
 
 		output = `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
 		puts output if output
