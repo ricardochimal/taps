@@ -49,7 +49,7 @@ describe Taps::ClientSession do
 		@progressbar.stubs(:inc)
 		@progressbar.stubs(:finish)
 		@mytable = mock('mytable')
-		@client.expects(:fetch_tables_info).returns([ { :mytable => 2 }, 2 ])
+		@client.expects(:fetch_remote_tables_info).returns([ { :mytable => 2 }, 2 ])
 		@client.stubs(:db).returns(mock('db'))
 		@client.db.stubs(:[]).with(:mytable).returns(@mytable)
 		@client.expects(:fetch_table_rows).with(:mytable, 1000, 0).returns([ 1000, { :header => [:x, :y], :data => [[1, 2], [3, 4]] } ])
@@ -59,11 +59,11 @@ describe Taps::ClientSession do
 		lambda { @client.cmd_receive_data }.should.not.raise
 	end
 
-	it "fetches tables info from taps server" do
+	it "fetches remote tables info from taps server" do
 		@marshal_data = Marshal.dump({ :mytable => 2 })
 		@client.session_resource.stubs(:[]).with('tables').returns(mock('tables'))
 		@client.session_resource['tables'].stubs(:get).with(:taps_version => Taps.version).returns(@marshal_data)
-		@client.fetch_tables_info.should == [ { :mytable => 2 }, 2 ]
+		@client.fetch_remote_tables_info.should == [ { :mytable => 2 }, 2 ]
 	end
 
 	it "fetches table rows given a chunksize and offset from taps server" do

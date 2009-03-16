@@ -96,6 +96,11 @@ class ClientSession
 	def cmd_send_data
 		puts "Sending data"
 
+		tables_with_counts, record_count = fetch_tables_info
+
+		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
+
+
 		db.tables.each do |table_name|
 			table = db[table_name]
 			count = table.count
@@ -135,6 +140,17 @@ class ClientSession
 		end
 	end
 
+	def fetch_tables_info
+		record_count = 0
+		tables = db.tables
+		tables_with_counts = tables.inject({}) do |accum, table|
+			accum[table] = db[table].count
+			record_count += accum[table]
+		end
+
+		[ tables_with_counts, record_count ]
+	end
+
 	def cmd_receive
 		verify_server
 		cmd_receive_schema
@@ -146,7 +162,7 @@ class ClientSession
 	def cmd_receive_data
 		puts "Receiving data"
 
-		tables_with_counts, record_count = fetch_tables_info
+		tables_with_counts, record_count = fetch_remote_tables_info
 
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
@@ -194,7 +210,7 @@ class ClientSession
 		[chunksize, rows]
 	end
 
-	def fetch_tables_info
+	def fetch_remote_tables_info
 		retries = 0
 		max_retries = 1
 		begin
