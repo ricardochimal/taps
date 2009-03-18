@@ -146,6 +146,7 @@ class ClientSession
 		tables_with_counts = tables.inject({}) do |accum, table|
 			accum[table] = db[table].count
 			record_count += accum[table]
+			accum
 		end
 
 		[ tables_with_counts, record_count ]
