@@ -263,7 +263,7 @@ class ClientSession
 			server['/'].get(http_headers)
 		rescue RestClient::RequestFailed => e
 			if e.http_code == 417
-				puts "#{remote_url} is running a different minor version of taps."
+				puts "#{safe_remote_url} is running a different minor version of taps."
 				puts "#{e.response.body}"
 				exit(1)
 			else
