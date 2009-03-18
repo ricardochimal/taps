@@ -37,7 +37,7 @@ describe Taps::ClientSession do
 		@client.stubs(:server).returns(mock('server'))
 		@request = mock('request')
 		@client.server.expects(:[]).with('/').returns(@request)
-		@request.expects(:get).with({:taps_version => Taps.version})
+		@request.expects(:get).with({:taps_version => Taps.compatible_version})
 
 		lambda { @client.verify_server }.should.not.raise
 	end
@@ -62,7 +62,7 @@ describe Taps::ClientSession do
 	it "fetches remote tables info from taps server" do
 		@marshal_data = Marshal.dump({ :mytable => 2 })
 		@client.session_resource.stubs(:[]).with('tables').returns(mock('tables'))
-		@client.session_resource['tables'].stubs(:get).with(:taps_version => Taps.version).returns(@marshal_data)
+		@client.session_resource['tables'].stubs(:get).with(:taps_version => Taps.compatible_version).returns(@marshal_data)
 		@client.fetch_remote_tables_info.should == [ { :mytable => 2 }, 2 ]
 	end
 
@@ -73,7 +73,7 @@ describe Taps::ClientSession do
 
 		@response = mock('response')
 		@client.session_resource.stubs(:[]).with('tables/mytable/1000?offset=0').returns(mock('table resource'))
-		@client.session_resource['tables/mytable/1000?offset=0'].expects(:get).with(:taps_version => Taps.version).returns(@response)
+		@client.session_resource['tables/mytable/1000?offset=0'].expects(:get).with(:taps_version => Taps.compatible_version).returns(@response)
 		@response.stubs(:to_s).returns(@gzip_data)
 		@response.stubs(:headers).returns({ :taps_checksum => Taps::Utils.checksum(@gzip_data) })
 		@client.fetch_table_rows('mytable', 1000, 0).should == [ 1000, { :header => [:x, :y], :data => [[1, 2], [3, 4]] } ]

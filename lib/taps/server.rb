@@ -14,8 +14,8 @@ class Server < Sinatra::Default
 	end
 
 	before do
-		unless request.env['HTTP_TAPS_VERSION'] == Taps.version
-			halt 417, "Taps version #{Taps.version} is required for this server"
+		unless request.env['HTTP_TAPS_VERSION'] == Taps.compatible_version
+			halt 417, "Taps v#{Taps.compatible_version}.x is required for this server"
 		end
 	end
 

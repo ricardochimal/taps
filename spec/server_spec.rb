@@ -21,7 +21,7 @@ describe Taps::Server do
 	end
 
 	it "verifies the client taps version" do
-		get('/', { }, { 'HTTP_AUTHORIZATION' => @auth_header, 'HTTP_TAPS_VERSION' => Taps.version })
+		get('/', { }, { 'HTTP_AUTHORIZATION' => @auth_header, 'HTTP_TAPS_VERSION' => Taps.compatible_version })
 		status.should == 200
 	end
 

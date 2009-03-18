@@ -10,6 +10,10 @@ module Taps
 		"#{version_yml[:major]}.#{version_yml[:minor]}.#{version_yml[:patch]}"
 	end
 
+	def self.compatible_version
+		"#{version_yml[:major]}.#{version_yml[:minor]}"
+	end
+
 	class Config
 		class << self
 			attr_accessor :taps_database_url

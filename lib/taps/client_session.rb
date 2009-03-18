@@ -41,7 +41,7 @@ class ClientSession
 	end
 
 	def open_session
-		uri = server['sessions'].post('', :taps_version => Taps.version)
+		uri = server['sessions'].post('', http_headers)
 		server[uri]
 	end
 
@@ -50,7 +50,7 @@ class ClientSession
 	end
 
 	def close_session
-		@session_resource.delete(:taps_version => Taps.version) if @session_resource
+		@session_resource.delete(http_headers) if @session_resource
 	end
 
 	def safe_url(url)
@@ -65,6 +65,10 @@ class ClientSession
 		safe_url(database_url)
 	end
 
+	def http_headers(extra = {})
+		{ :taps_version => Taps.compatible_version }.merge(extra)
+	end
+
 	def cmd_send
 		verify_server
 		cmd_send_schema
@@ -77,20 +81,20 @@ class ClientSession
 		puts "Sending indexes"
 
 		index_data = `#{File.dirname(__FILE__)}/../../bin/schema indexes #{database_url}`
-		session_resource['indexes'].post(index_data, :taps_version => Taps.version)
+		session_resource['indexes'].post(index_data, http_headers)
 	end
 
 	def cmd_send_schema
 		puts "Sending schema"
 
 		schema_data = `#{File.dirname(__FILE__)}/../../bin/schema dump #{database_url}`
-		session_resource['schema'].post(schema_data, :taps_version => Taps.version)
+		session_resource['schema'].post(schema_data, http_headers)
 	end
 
 	def cmd_send_reset_sequences
 		puts "Resetting sequences"
 
-		session_resource["reset_sequences"].post('', :taps_version => Taps.version)
+		session_resource["reset_sequences"].post('', http_headers)
 	end
 
 	def cmd_send_data
@@ -119,10 +123,9 @@ class ClientSession
 
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do
 					begin
-						session_resource["tables/#{table_name}"].post(gzip_data,
-							:taps_version => Taps.version,
+						session_resource["tables/#{table_name}"].post(gzip_data, http_headers({
 							:content_type => 'application/octet-stream',
-							:taps_checksum => Taps::Utils.checksum(gzip_data).to_s)
+							:taps_checksum => Taps::Utils.checksum(gzip_data).to_s}))
 					rescue RestClient::RequestFailed => e
 						# retry the same data, it got corrupted somehow.
 						if e.http_code == 412
@@ -197,7 +200,7 @@ class ClientSession
 	def fetch_table_rows(table_name, chunksize, offset)
 		response = nil
 		chunksize = Taps::Utils.calculate_chunksize(chunksize) do
-			response = session_resource["tables/#{table_name}/#{chunksize}?offset=#{offset}"].get(:taps_version => Taps.version)
+			response = session_resource["tables/#{table_name}/#{chunksize}?offset=#{offset}"].get(http_headers)
 		end
 		raise CorruptedData unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
 
@@ -215,7 +218,7 @@ class ClientSession
 		retries = 0
 		max_retries = 1
 		begin
-			tables_with_counts = Marshal.load(session_resource['tables'].get(:taps_version => Taps.version))
+			tables_with_counts = Marshal.load(session_resource['tables'].get(http_headers))
 			record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
 		rescue RestClient::Exception
 			retries += 1
@@ -230,7 +233,7 @@ class ClientSession
 	def cmd_receive_schema
 		puts "Receiving schema"
 
-		schema_data = session_resource['schema'].get(:taps_version => Taps.version)
+		schema_data = session_resource['schema'].get(http_headers)
 		output = Taps::Utils.load_schema(database_url, schema_data)
 		puts output if output
 	end
@@ -238,7 +241,7 @@ class ClientSession
 	def cmd_receive_indexes
 		puts "Receiving indexes"
 
-		index_data = session_resource['indexes'].get(:taps_version => Taps.version)
+		index_data = session_resource['indexes'].get(http_headers)
 
 		output = Taps::Utils.load_indexes(database_url, index_data)
 		puts output if output
@@ -257,10 +260,10 @@ class ClientSession
 
 	def verify_server
 		begin
-			server['/'].get(:taps_version => Taps.version)
+			server['/'].get(http_headers)
 		rescue RestClient::RequestFailed => e
 			if e.http_code == 417
-				puts "#{remote_url} is running a different version of taps."
+				puts "#{remote_url} is running a different minor version of taps."
 				puts "#{e.response.body}"
 				exit(1)
 			else
