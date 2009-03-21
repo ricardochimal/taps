@@ -12,7 +12,7 @@ begin
     s.add_dependency 'activerecord', '= 2.2.2'
     s.add_dependency 'thor', '= 0.9.9'
     s.add_dependency 'rest-client', '~> 0.9.0'
-    s.add_dependency 'sequel', '~> 2.10.0'
+    s.add_dependency 'sequel', '~> 2.11.0'
     s.add_dependency 'sqlite3-ruby', '~> 1.2.0'
 
     s.rubyforge_project = "taps"
