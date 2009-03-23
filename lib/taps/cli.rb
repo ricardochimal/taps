@@ -36,6 +36,11 @@ class Cli < Thor
 		clientxfer(:cmd_send, database_url, remote_url)
 	end
 
+	desc "version", "Taps version"
+	def version
+		puts Taps.version
+	end
+
 	def clientxfer(method, database_url, remote_url)
 		if options[:chunksize]
 			Taps::Config.chunksize = options[:chunksize] < 100 ? 100 : options[:chunksize]
