@@ -10,7 +10,8 @@ class Server < Sinatra::Default
 	end
 
 	error do
-		"Application error"
+		e = request.env['sinatra.error']
+		"Taps Server Error: #{e}"
 	end
 
 	before do

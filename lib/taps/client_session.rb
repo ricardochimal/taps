@@ -70,11 +70,21 @@ class ClientSession
 	end
 
 	def cmd_send
-		verify_server
-		cmd_send_schema
-		cmd_send_data
-		cmd_send_indexes
-		cmd_send_reset_sequences
+		begin
+			verify_server
+			cmd_send_schema
+			cmd_send_data
+			cmd_send_indexes
+			cmd_send_reset_sequences
+		rescue RestClient::Exception => e
+			if e.respond_to?(:response)
+				puts "!!! Caught Server Exception"
+				puts "#{e.response.body}"
+				exit(1)
+			else
+				raise
+			end
+		end
 	end
 
 	def cmd_send_indexes
@@ -156,11 +166,21 @@ class ClientSession
 	end
 
 	def cmd_receive
-		verify_server
-		cmd_receive_schema
-		cmd_receive_data
-		cmd_receive_indexes
-		cmd_reset_sequences
+		begin
+			verify_server
+			cmd_receive_schema
+			cmd_receive_data
+			cmd_receive_indexes
+			cmd_reset_sequences
+		rescue RestClient::Exception => e
+			if e.respond_to?(:response)
+				puts "!!! Caught Server Exception"
+				puts "#{e.response.body}"
+				exit(1)
+			else
+				raise
+			end
+		end
 	end
 
 	def cmd_receive_data
