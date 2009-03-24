@@ -41,5 +41,9 @@ describe Taps::Utils do
 		Time.stubs(:now).returns(10.0).returns(11.1)
 		Taps::Utils.calculate_chunksize(1000) { }.should == 1100
 	end
+
+	it "will reset the chunksize to a small value if we got a broken pipe exception" do
+		Taps::Utils.calculate_chunksize(1000) { |c| raise Errno::EPIPE if c == 1000; c.should == 100 }.should == 200
+	end
 end
 

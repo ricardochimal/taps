@@ -41,19 +41,32 @@ module Utils
 	end
 
 	def calculate_chunksize(old_chunksize)
-		t1 = Time.now
-		yield
+		chunksize = old_chunksize
+
+		retries = 0
+		begin
+			t1 = Time.now
+			yield chunksize
+		rescue Errno::EPIPE
+			retries += 1
+			raise if retries > 1
+			# we got disconnected, the chunksize could be too large
+			# so we're resetting to a very small value
+			chunksize = 100
+			retry
+		end
+
 		t2 = Time.now
 
 		diff = t2 - t1
 		new_chunksize = if diff > 3.0
-			(old_chunksize / 3).ceil
+			(chunksize / 3).ceil
 		elsif diff > 1.1
-			old_chunksize - 100
+			chunksize - 100
 		elsif diff < 0.8
-			old_chunksize * 2
+			chunksize * 2
 		else
-			old_chunksize + 100
+			chunksize + 100
 		end
 		new_chunksize = 100 if new_chunksize < 100
 		new_chunksize

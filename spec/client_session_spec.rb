@@ -69,7 +69,7 @@ describe Taps::ClientSession do
 	it "fetches table rows given a chunksize and offset from taps server" do
 		@data = { :header => [ :x, :y ], :data => [ [1, 2], [3, 4] ] }
 		@gzip_data = Taps::Utils.gzip(Marshal.dump(@data))
-		Taps::Utils.stubs(:calculate_chunksize).with(1000).yields.returns(1000)
+		Taps::Utils.stubs(:calculate_chunksize).with(1000).yields(1000).returns(1000)
 
 		@response = mock('response')
 		@client.session_resource.stubs(:[]).with('tables/mytable/1000?offset=0').returns(mock('table resource'))

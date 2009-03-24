@@ -126,12 +126,14 @@ class ClientSession
 
 			offset = 0
 			loop do
-				rows = Taps::Utils.format_data(table.order(order).limit(chunksize, offset).all)
-				break if rows == { }
+				row_size = 0
+				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
+					rows = Taps::Utils.format_data(table.order(order).limit(c, offset).all)
+					break if rows == { }
 
-				gzip_data = Taps::Utils.gzip(Marshal.dump(rows))
+					row_size = rows[:data].size
+					gzip_data = Taps::Utils.gzip(Marshal.dump(rows))
 
-				chunksize = Taps::Utils.calculate_chunksize(chunksize) do
 					begin
 						session_resource["tables/#{table_name}"].post(gzip_data, http_headers({
 							:content_type => 'application/octet-stream',
@@ -145,8 +147,10 @@ class ClientSession
 					end
 				end
 
-				progress.inc(rows[:data].size)
-				offset += rows[:data].size
+				progress.inc(row_size)
+				offset += row_size
+
+				break if row_size == 0
 			end
 
 			progress.finish
@@ -219,8 +223,8 @@ class ClientSession
 
 	def fetch_table_rows(table_name, chunksize, offset)
 		response = nil
-		chunksize = Taps::Utils.calculate_chunksize(chunksize) do
-			response = session_resource["tables/#{table_name}/#{chunksize}?offset=#{offset}"].get(http_headers)
+		chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
+			response = session_resource["tables/#{table_name}/#{c}?offset=#{offset}"].get(http_headers)
 		end
 		raise CorruptedData unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
 
