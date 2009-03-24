@@ -27,7 +27,6 @@ or when you want to push a local database to a taps server
 * Blob data may not transfer properly, I suspect that SQLite3 is modifying some native ruby objects.
 * Foreign Keys get lost in the schema transfer
 * Large tables (>1 million rows with a large number of columns) get slower as the offset gets larger. This is due to it being inefficient having large offset values in queries.
-* Character encoding problems should be more transparent but they're not, it usually involves looking at the server log to see the error.
 
 == Meta
 
