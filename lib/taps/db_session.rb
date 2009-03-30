@@ -1,3 +1,5 @@
+require 'thread'
+
 Sequel::Model.db = Sequel.connect(Taps::Config.taps_database_url)
 
 class DbSession < Sequel::Model
@@ -9,17 +11,48 @@ class DbSession < Sequel::Model
 		timestamp :last_access
 	end
 
+	@@connections = {}
+	@@mutex = Mutex.new
+
 	def connection
-		@@connections ||= {}
-		@@connections[key] ||= Sequel.connect(database_url)
+		@@mutex.synchronize {
+			conn =
+				if @@connections.key?(key)
+					@@connections[key].first
+				else
+					Sequel.connect(database_url)
+				end
+			@@connections[key] = [conn, Time.now]
+		}
 	end
 
 	def disconnect
-		if defined? @@connections and @@connections[key]
-			@@connections[key].disconnect
-			@@connections.delete key
-		end
+		@@mutex.synchronize {
+			if @@connections.key?(key)
+				conn, time = @@connections.delete(key)
+				conn.disconnect
+			end
+		}
 	end
+
+	# Removes connections that have not been accessed within the
+	# past thirty seconds.
+	def self.cleanup
+		@@mutex.synchronize {
+			now = Time.now
+			@@connections.each do |key, (conn, time)|
+				if now - time > 30
+					@@connections.delete(key)
+					conn.disconnect
+				end
+			end
+		}
+	end
+
+	Thread.new {
+		sleep 30
+		cleanup
+	}.run
 end
 
 DbSession.create_table! unless DbSession.table_exists?
