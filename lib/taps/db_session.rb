@@ -23,6 +23,7 @@ class DbSession < Sequel::Model
 					Sequel.connect(database_url)
 				end
 			@@connections[key] = [conn, Time.now]
+			return conn
 		}
 	end
 
@@ -50,8 +51,10 @@ class DbSession < Sequel::Model
 	end
 
 	Thread.new {
-		sleep 30
-		cleanup
+		while true
+			sleep 30
+			cleanup
+		end
 	}.run
 end
 
