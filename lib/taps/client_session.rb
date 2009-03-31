@@ -118,8 +118,8 @@ class ClientSession
 		db.tables.each do |table_name|
 			table = db[table_name]
 			count = table.count
-			columns = table.columns
-			order = columns.include?(:id) ? :id : columns.first
+			primary_key = db.primary_key(table_name.to_sym)
+			order = primary_key ? [primary_key.to_sym] : table.columns
 			chunksize = self.default_chunksize
 
 			progress = ProgressBar.new(table_name.to_s, count)
@@ -128,7 +128,7 @@ class ClientSession
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-					rows = Taps::Utils.format_data(table.order(order).limit(c, offset).all)
+					rows = Taps::Utils.format_data(table.order(*order).limit(c, offset).all)
 					break if rows == { }
 
 					row_size = rows[:data].size
