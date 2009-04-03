@@ -85,5 +85,22 @@ module Utils
 			`#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{database_url} #{tmp.path}`
 		end
 	end
+
+	def primary_key(db, table)
+		if db.respond_to?(:primary_key)
+			db.primary_key(table)
+		else
+			db.schema[table].select { |c| c[1][:primary_key] }.map { |c| c.first }.shift
+		end
+	end
+
+	def order_by(db, table)
+		pkey = primary_key(db, table)
+		if pkey
+			[pkey.to_sym]
+		else
+			db[table].columns
+		end
+	end
 end
 end

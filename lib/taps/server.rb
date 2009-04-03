@@ -117,8 +117,7 @@ class Server < Sinatra::Default
 
 		db = session.connection
 		table = db[params[:table].to_sym]
-		primary_key = db.primary_key(params[:table].to_sym)
-		order = primary_key ? [primary_key.to_sym] : table.columns
+		order = Taps::Utils.order_by(db, params[:table].to_sym)
 		raw_data = Marshal.dump(Taps::Utils.format_data(table.order(*order).limit(chunk, offset).all))
 		gzip_data = Taps::Utils.gzip(raw_data)
 		response['Taps-Checksum'] = Taps::Utils.checksum(gzip_data).to_s

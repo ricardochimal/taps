@@ -118,8 +118,7 @@ class ClientSession
 		db.tables.each do |table_name|
 			table = db[table_name]
 			count = table.count
-			primary_key = db.primary_key(table_name.to_sym)
-			order = primary_key ? [primary_key.to_sym] : table.columns
+			order = Taps::Utils.order_by(db, table_name)
 			chunksize = self.default_chunksize
 
 			progress = ProgressBar.new(table_name.to_s, count)
