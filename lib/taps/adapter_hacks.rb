@@ -4,7 +4,7 @@ module Taps
 
 		LIST = {
 			:all => ['non_rails_schema_dump'],
-			:mysql => ['invalid_text_limit'],
+			:mysql => ['invalid_text_limit', 'mysql_invalid_primary_key'],
 			:postgresql => ['invalid_text_limit']
 		}
 

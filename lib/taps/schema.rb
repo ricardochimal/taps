@@ -34,8 +34,9 @@ module Schema
 
 	def connection(database_url)
 		config = create_config(database_url)
+		c = ActiveRecord::Base.establish_connection(config)
 		Taps::AdapterHacks.load(config['adapter'])
-		ActiveRecord::Base.establish_connection(config)
+		c
 	end
 
 	def dump(database_url)
