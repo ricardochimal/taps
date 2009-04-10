@@ -10,6 +10,7 @@ database_url = ARGV.shift.strip rescue ''
 
 def show_usage_and_exit
 	puts <<EOTXT
+	schema console <database_url>
 	schema dump <database_url>
 	schema indexes <database_url>
 	schema reset_db_sequences <database_url>
@@ -33,6 +34,12 @@ elsif cmd == 'load'
 	Taps::Schema.load(database_url, schema)
 elsif cmd == 'reset_db_sequences'
 	Taps::Schema.reset_db_sequences(database_url)
+elsif cmd == 'console'
+	Taps::Schema.connection(database_url)
+	$db = ActiveRecord::Base.connection
+	require 'irb'
+	require 'irb/completion'
+	IRB.start
 else
 	show_usage_and_exit
 end
