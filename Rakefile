@@ -21,8 +21,12 @@ begin
     s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile']
     s.executables = ['taps', 'schema']
   end
-rescue LoadError
-  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+rescue LoadError => e
+  if e.message =~ /jeweler/
+    puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+  else
+    puts e.message + ' -- while loading jeweler.'
+  end
 end
 
 require 'rake/rdoctask'
@@ -45,9 +49,13 @@ rescue LoadError
   puts "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
 end
 
-desc "Run all specs"
+desc "Run all specs; requires the bacon gem"
 task :spec do
-  system "bacon #{File.dirname(__FILE__)}/spec/*_spec.rb"
+  if `which bacon`.empty?
+    puts "bacon is not available. In order to run the specs, you must: sudo gem install bacon."
+  else
+    system "bacon #{File.dirname(__FILE__)}/spec/*_spec.rb"
+  end
 end
 
 task :default => :spec
