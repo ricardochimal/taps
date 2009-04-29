@@ -118,7 +118,8 @@ class Server < Sinatra::Default
 		db = session.connection
 		table = db[params[:table].to_sym]
 		order = Taps::Utils.order_by(db, params[:table].to_sym)
-		raw_data = Marshal.dump(Taps::Utils.format_data(table.order(*order).limit(chunk, offset).all))
+		string_columns = Taps::Utils.incorrect_blobs(db, params[:table].to_sym)
+		raw_data = Marshal.dump(Taps::Utils.format_data(table.order(*order).limit(chunk, offset).all, string_columns))
 		gzip_data = Taps::Utils.gzip(raw_data)
 		response['Taps-Checksum'] = Taps::Utils.checksum(gzip_data).to_s
 		response['Content-Type'] = "application/octet-stream"

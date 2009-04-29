@@ -120,6 +120,7 @@ class ClientSession
 			count = table.count
 			order = Taps::Utils.order_by(db, table_name)
 			chunksize = self.default_chunksize
+			string_columns = Taps::Utils.incorrect_blobs(db, table_name)
 
 			progress = ProgressBar.new(table_name.to_s, count)
 
@@ -127,7 +128,7 @@ class ClientSession
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-					rows = Taps::Utils.format_data(table.order(*order).limit(c, offset).all)
+					rows = Taps::Utils.format_data(table.order(*order).limit(c, offset).all, string_columns)
 					break if rows == { }
 
 					row_size = rows[:data].size

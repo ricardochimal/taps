@@ -16,7 +16,7 @@ describe Taps::Utils do
 	end
 
 	it "formats a data hash into one hash that contains an array of headers and an array of array of data" do
-		Taps::Utils.format_data([ { :x => 1, :y => 1 }, { :x => 2, :y => 2 } ]).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
+		Taps::Utils.format_data([ { :x => 1, :y => 1 }, { :x => 2, :y => 2 } ], []).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
 	end
 
 	it "scales chunksize down slowly when the time delta of the block is just over a second" do
@@ -44,6 +44,17 @@ describe Taps::Utils do
 
 	it "will reset the chunksize to a small value if we got a broken pipe exception" do
 		Taps::Utils.calculate_chunksize(1000) { |c| raise Errno::EPIPE if c == 1000; c.should == 100 }.should == 200
+	end
+
+	it "returns a list of columns that are text fields if the database is mysql" do
+		@db = mock("db")
+		@db.class.stubs(:to_s).returns("Sequel::MySQL::Database")
+		@db.stubs(:schema).returns(mock("schema"))
+		@db.schema.stubs(:[]).with(:mytable).returns([
+			[:id, { :db_type => "int" }],
+			[:mytext, { :db_type => "text" }]
+		])
+		Taps::Utils.incorrect_blobs(@db, :mytable).should == [:mytext]
 	end
 end
 

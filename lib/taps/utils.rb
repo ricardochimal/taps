@@ -31,13 +31,36 @@ module Utils
 		data
 	end
 
-	def format_data(data)
+	def format_data(data, string_columns)
 		return {} if data.size == 0
 		header = data[0].keys
 		only_data = data.collect do |row|
+			row = blobs_to_string(row, string_columns)
 			header.collect { |h| row[h] }
 		end
 		{ :header => header, :data => only_data }
+	end
+
+	# mysql text and blobs fields are handled the same way internally
+	# this is not true for other databases so we must check if the field is
+	# actually text and manually convert it back to a string
+	def incorrect_blobs(db, table)
+		return [] unless db.class.to_s == "Sequel::MySQL::Database"
+
+		columns = []
+		db.schema[table].each do |data|
+			column, cdata = data
+			columns << column if cdata[:db_type] =~ /text/
+		end
+		columns
+	end
+
+	def blobs_to_string(row, columns)
+		return row if columns.size == 0
+		columns.each do |c|
+			row[c] = row[c].to_s if row[c].kind_of?(Sequel::SQL::Blob)
+		end
+		row
 	end
 
 	def calculate_chunksize(old_chunksize)
