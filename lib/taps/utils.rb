@@ -7,6 +7,15 @@ module Taps
 module Utils
 	extend self
 
+	def windows?
+		RUBY_PLATFORM =~ /mswin32/
+	end
+
+	def bin(cmd)
+		cmd = "#{cmd}.cmd" if windows?
+		cmd
+	end
+
 	def checksum(data)
 		Zlib.crc32(data)
 	end
@@ -98,15 +107,19 @@ module Utils
 	def load_schema(database_url, schema_data)
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(schema_data) }
-			`#{File.dirname(__FILE__)}/../../bin/schema load #{database_url} #{tmp.path}`
+			schema_bin(:load, database_url, tmp.path)
 		end
 	end
 
 	def load_indexes(database_url, index_data)
 		Tempfile.open('taps') do |tmp|
 			File.open(tmp.path, 'w') { |f| f.write(index_data) }
-			`#{File.dirname(__FILE__)}/../../bin/schema load_indexes #{database_url} #{tmp.path}`
+			schema_bin(:load_indexes, database_url, tmp.path)
 		end
+	end
+
+	def schema_bin(*args)
+		`#{File.dirname(__FILE__)}/../../bin/#{bin('schema')} #{args.join(' ')}`
 	end
 
 	def primary_key(db, table)

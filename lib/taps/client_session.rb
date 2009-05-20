@@ -90,14 +90,14 @@ class ClientSession
 	def cmd_send_indexes
 		puts "Sending indexes"
 
-		index_data = `#{File.dirname(__FILE__)}/../../bin/schema indexes #{database_url}`
+		index_data = Taps::Utils.schema_bin(:indexes, database_url)
 		session_resource['indexes'].post(index_data, http_headers)
 	end
 
 	def cmd_send_schema
 		puts "Sending schema"
 
-		schema_data = `#{File.dirname(__FILE__)}/../../bin/schema dump #{database_url}`
+		schema_data = Taps::Utils.schema_bin(:dump, database_url)
 		session_resource['schema'].post(schema_data, http_headers)
 	end
 
@@ -274,7 +274,7 @@ class ClientSession
 	def cmd_reset_sequences
 		puts "Resetting sequences"
 
-		output = `#{File.dirname(__FILE__)}/../../bin/schema reset_db_sequences #{database_url}`
+		output = Taps::Utils.schema_bin(:reset_db_sequences, database_url)
 		puts output if output
 	end
 

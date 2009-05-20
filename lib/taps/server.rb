@@ -55,7 +55,7 @@ class Server < Sinatra::Default
 		halt 404 unless session
 
 		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
-		`#{schema_app} reset_db_sequences #{session.database_url}`
+		Taps::Utils.schema_bin(:reset_db_sequences, session.database_url)
 	end
 
 	post '/sessions/:key/schema' do
@@ -79,7 +79,7 @@ class Server < Sinatra::Default
 		halt 404 unless session
 
 		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
-		`#{schema_app} dump #{session.database_url}`
+		Taps::Utils.schema_bin(:dump, session.database_url)
 	end
 
 	get '/sessions/:key/indexes' do
@@ -87,7 +87,7 @@ class Server < Sinatra::Default
 		halt 404 unless session
 
 		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
-		`#{schema_app} indexes #{session.database_url}`
+		Taps::Utils.schema_bin(:indexes, session.database_url)
 	end
 
 	get '/sessions/:key/tables' do
