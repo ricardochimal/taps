@@ -48,7 +48,7 @@ module Utils
 		return [] unless db.class.to_s == "Sequel::MySQL::Database"
 
 		columns = []
-		db.schema[table].each do |data|
+		db.schema(table).each do |data|
 			column, cdata = data
 			columns << column if cdata[:db_type] =~ /text/
 		end
@@ -113,7 +113,7 @@ module Utils
 		if db.respond_to?(:primary_key)
 			db.primary_key(table)
 		else
-			db.schema[table].select { |c| c[1][:primary_key] }.map { |c| c.first }.shift
+			db.schema(table).select { |c| c[1][:primary_key] }.map { |c| c.first }.shift
 		end
 	end
 

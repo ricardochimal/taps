@@ -209,7 +209,7 @@ class ClientSession
 				end
 				break if rows == { }
 
-				table.multi_insert(rows[:header], rows[:data])
+				table.import(rows[:header], rows[:data])
 
 				progress.inc(rows[:data].size)
 				offset += rows[:data].size

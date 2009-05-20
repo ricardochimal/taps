@@ -45,7 +45,7 @@ class Server < Sinatra::Default
 
 		db = session.connection
 		table = db[params[:table].to_sym]
-		table.multi_insert(rows[:header], rows[:data])
+		table.import(rows[:header], rows[:data])
 
 		"#{rows[:data].size}"
 	end

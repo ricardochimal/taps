@@ -3,6 +3,7 @@ require 'thread'
 Sequel::Model.db = Sequel.connect(Taps::Config.taps_database_url)
 
 class DbSession < Sequel::Model
+	plugin :schema
 	set_schema do
 		primary_key :id
 		text :key
