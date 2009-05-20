@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-gem 'activerecord', '= 2.2.2'
+gem 'sequel', '= 3.0.0'
 
-require File.dirname(__FILE__) + '/../lib/taps/schema'
+require File.dirname(__FILE__) + '/../lib/taps/sequel_schema'
 
 cmd = ARGV.shift.strip rescue ''
 database_url = ARGV.shift.strip rescue ''
@@ -21,7 +21,7 @@ EOTXT
 end
 
 if cmd == 'dump'
-	puts Taps::Schema.dump_without_indexes(database_url)
+	puts Taps::Schema.dump(database_url)
 elsif cmd == 'indexes'
 	puts Taps::Schema.indexes(database_url)
 elsif cmd == 'load_indexes'
