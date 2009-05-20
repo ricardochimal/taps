@@ -54,7 +54,7 @@ describe Taps::ClientSession do
 		@client.db.stubs(:[]).with(:mytable).returns(@mytable)
 		@client.expects(:fetch_table_rows).with(:mytable, 1000, 0).returns([ 1000, { :header => [:x, :y], :data => [[1, 2], [3, 4]] } ])
 		@client.expects(:fetch_table_rows).with(:mytable, 1000, 2).returns([ 1000, { }])
-		@mytable.expects(:multi_insert).with([:x, :y], [[1, 2], [3, 4]])
+		@mytable.expects(:import).with([:x, :y], [[1, 2], [3, 4]])
 
 		lambda { @client.cmd_receive_data }.should.not.raise
 	end

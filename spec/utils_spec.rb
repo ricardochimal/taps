@@ -16,7 +16,9 @@ describe Taps::Utils do
 	end
 
 	it "formats a data hash into one hash that contains an array of headers and an array of array of data" do
-		Taps::Utils.format_data([ { :x => 1, :y => 1 }, { :x => 2, :y => 2 } ], []).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
+		first_row = { :x => 1, :y => 1 }
+		first_row.stubs(:keys).returns([:x, :y])
+		Taps::Utils.format_data([ first_row, { :x => 2, :y => 2 } ], []).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
 	end
 
 	it "scales chunksize down slowly when the time delta of the block is just over a second" do
@@ -49,8 +51,7 @@ describe Taps::Utils do
 	it "returns a list of columns that are text fields if the database is mysql" do
 		@db = mock("db")
 		@db.class.stubs(:to_s).returns("Sequel::MySQL::Database")
-		@db.stubs(:schema).returns(mock("schema"))
-		@db.schema.stubs(:[]).with(:mytable).returns([
+		@db.stubs(:schema).with(:mytable).returns([
 			[:id, { :db_type => "int" }],
 			[:mytext, { :db_type => "text" }]
 		])
