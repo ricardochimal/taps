@@ -3,7 +3,7 @@
 require 'rubygems'
 gem 'sequel', '= 3.0.0'
 
-require File.dirname(__FILE__) + '/../lib/taps/sequel_schema'
+require File.dirname(__FILE__) + '/../lib/taps/schema'
 
 cmd = ARGV.shift.strip rescue ''
 database_url = ARGV.shift.strip rescue ''
@@ -35,8 +35,7 @@ elsif cmd == 'load'
 elsif cmd == 'reset_db_sequences'
 	Taps::Schema.reset_db_sequences(database_url)
 elsif cmd == 'console'
-	Taps::Schema.connection(database_url)
-	$db = ActiveRecord::Base.connection
+	$db = Sequel.connect(database_url)
 	require 'irb'
 	require 'irb/completion'
 	IRB.start
