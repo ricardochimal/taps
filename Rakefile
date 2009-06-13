@@ -18,7 +18,7 @@ begin
     s.rubyforge_project = "taps"
     s.rubygems_version = '1.3.1'
 
-    s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile']
+    s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile'] + FileList['bin/*']
     s.executables = ['taps', 'schema']
   end
 rescue LoadError => e
