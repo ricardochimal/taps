@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-gem 'sequel', '= 3.0.0'
+gem 'sequel', '>= 3.6.0', '< 3.7.0'
 
 require File.dirname(__FILE__) + '/../lib/taps/schema'
 
