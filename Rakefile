@@ -10,18 +10,22 @@ begin
 
     s.add_dependency 'sinatra', '= 0.9.2'
     s.add_dependency 'thor', '= 0.9.9'
-    s.add_dependency 'rest-client', '~> 0.9.0'
+    s.add_dependency 'rest-client', '>= 1.0.1', '< 1.1.0'
     s.add_dependency 'sequel', '>= 3.0.0', '< 3.1.0'
     s.add_dependency 'sqlite3-ruby', '~> 1.2.0'
 
     s.rubyforge_project = "taps"
     s.rubygems_version = '1.3.1'
 
-    s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile']
+    s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile'] + FileList['bin/*']
     s.executables = ['taps', 'schema']
   end
-rescue LoadError
-  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+rescue LoadError => e
+  if e.message =~ /jeweler/
+    puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+  else
+    puts e.message + ' -- while loading jeweler.'
+  end
 end
 
 require 'rake/rdoctask'
@@ -44,9 +48,13 @@ rescue LoadError
   puts "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
 end
 
-desc "Run all specs"
+desc "Run all specs; requires the bacon gem"
 task :spec do
-  system "bacon #{File.dirname(__FILE__)}/spec/*_spec.rb"
+  if `which bacon`.empty?
+    puts "bacon is not available. In order to run the specs, you must: sudo gem install bacon."
+  else
+    system "bacon #{File.dirname(__FILE__)}/spec/*_spec.rb"
+  end
 end
 
 task :default => :spec

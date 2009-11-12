@@ -3,7 +3,7 @@
 require 'rubygems'
 gem 'activerecord', '= 2.2.2'
 gem 'thor', '= 0.9.9'
-gem 'rest-client', '~> 0.9.0'
+gem 'rest-client', '>= 1.0.1', '< 1.1.0'
 gem 'sinatra', '= 0.9.2'
 gem 'sequel', '>= 3.0.0', '< 3.1.0'
 gem 'sqlite3-ruby', '~> 1.2.0'
