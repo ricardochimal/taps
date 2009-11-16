@@ -1,8 +1,6 @@
 require 'sequel'
 require 'sequel/extensions/schema_dumper'
 require 'sequel/extensions/migration'
-require 'stringio'
-require 'uri'
 
 module Taps
 module Schema
