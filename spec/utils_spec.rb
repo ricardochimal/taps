@@ -45,7 +45,7 @@ describe Taps::Utils do
 	end
 
 	it "will reset the chunksize to a small value if we got a broken pipe exception" do
-		Taps::Utils.calculate_chunksize(1000) { |c| raise Errno::EPIPE if c == 1000; c.should == 100 }.should == 200
+		Taps::Utils.calculate_chunksize(1000) { |c| raise Errno::EPIPE if c == 1000; c.should == 10 }.should == 10
 	end
 
 	it "returns a list of columns that are text fields if the database is mysql" do
