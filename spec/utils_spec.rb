@@ -48,6 +48,10 @@ describe Taps::Utils do
 		Taps::Utils.calculate_chunksize(1000) { |c| raise Errno::EPIPE if c == 1000; c.should == 10 }.should == 10
 	end
 
+	it "will reset the chunksize to a small value if we got a broken pipe exception a second time" do
+		Taps::Utils.calculate_chunksize(1000) { |c| raise Errno::EPIPE if c == 1000 || c == 10; c.should == 1 }.should == 1
+	end
+
 	it "returns a list of columns that are text fields if the database is mysql" do
 		@db = mock("db")
 		@db.class.stubs(:to_s).returns("Sequel::MySQL::Database")

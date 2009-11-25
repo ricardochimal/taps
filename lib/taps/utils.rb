@@ -81,10 +81,12 @@ module Utils
 			yield chunksize
 		rescue Errno::EPIPE, RestClient::RequestFailed
 			retries += 1
-			raise if retries > 1
+			raise if retries > 2
+
 			# we got disconnected, the chunksize could be too large
-			# so we're resetting to a very small value
-			chunksize = 10
+			# on first retry change to 10, on successive retries go down to 1
+			chunksize = (retries == 1) ? 10 : 1
+
 			retry
 		end
 
@@ -92,7 +94,7 @@ module Utils
 
 		diff = t2 - t1
 		new_chunksize = if retries > 0
-			(chunksize / 3).ceil
+			chunksize
 		elsif diff > 3.0
 			(chunksize / 3).ceil
 		elsif diff > 1.1
@@ -102,7 +104,7 @@ module Utils
 		else
 			chunksize + 100
 		end
-		new_chunksize = 10 if new_chunksize < 10
+		new_chunksize = 1 if new_chunksize < 1
 		new_chunksize
 	end
 
