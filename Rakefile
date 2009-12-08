@@ -10,8 +10,8 @@ begin
 
     s.add_dependency 'sinatra', '= 0.9.4'
     s.add_dependency 'thor', '= 0.9.9'
-    s.add_dependency 'rest-client', '>= 1.0.1', '< 1.1.0'
-    s.add_dependency 'sequel', '>= 3.6.0', '< 3.7.0'
+    s.add_dependency 'rest-client', '>= 1.0.1'
+    s.add_dependency 'sequel', '>= 3.7.0', '< 3.8.0'
     s.add_dependency 'sqlite3-ruby', '~> 1.2.0'
 
     s.rubyforge_project = "taps"

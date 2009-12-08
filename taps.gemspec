@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
-  s.date = %q{2009-11-11}
+  s.date = %q{2009-12-08}
   s.description = %q{A simple database agnostic import/export app to transfer data to/from a remote database.}
   s.email = %q{ricardo@heroku.com}
   s.executables = ["taps", "schema"]
@@ -60,21 +60,21 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<sinatra>, ["= 0.9.4"])
       s.add_runtime_dependency(%q<thor>, ["= 0.9.9"])
-      s.add_runtime_dependency(%q<rest-client>, [">= 1.0.1", "< 1.1.0"])
-      s.add_runtime_dependency(%q<sequel>, [">= 3.6.0", "< 3.7.0"])
+      s.add_runtime_dependency(%q<rest-client>, [">= 1.0.1"])
+      s.add_runtime_dependency(%q<sequel>, [">= 3.7.0", "< 3.8.0"])
       s.add_runtime_dependency(%q<sqlite3-ruby>, ["~> 1.2.0"])
     else
       s.add_dependency(%q<sinatra>, ["= 0.9.4"])
       s.add_dependency(%q<thor>, ["= 0.9.9"])
-      s.add_dependency(%q<rest-client>, [">= 1.0.1", "< 1.1.0"])
-      s.add_dependency(%q<sequel>, [">= 3.6.0", "< 3.7.0"])
+      s.add_dependency(%q<rest-client>, [">= 1.0.1"])
+      s.add_dependency(%q<sequel>, [">= 3.7.0", "< 3.8.0"])
       s.add_dependency(%q<sqlite3-ruby>, ["~> 1.2.0"])
     end
   else
     s.add_dependency(%q<sinatra>, ["= 0.9.4"])
     s.add_dependency(%q<thor>, ["= 0.9.9"])
-    s.add_dependency(%q<rest-client>, [">= 1.0.1", "< 1.1.0"])
-    s.add_dependency(%q<sequel>, [">= 3.6.0", "< 3.7.0"])
+    s.add_dependency(%q<rest-client>, [">= 1.0.1"])
+    s.add_dependency(%q<sequel>, [">= 3.7.0", "< 3.8.0"])
     s.add_dependency(%q<sqlite3-ruby>, ["~> 1.2.0"])
   end
 end
