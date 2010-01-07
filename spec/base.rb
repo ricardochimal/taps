@@ -1,9 +1,11 @@
 require 'rubygems'
 require 'bacon'
 require 'mocha'
+require 'rack/test'
 
 class Bacon::Context
 	include Mocha::Standalone
+	include Rack::Test::Methods
 
 	alias_method :old_it, :it
 	def it(description)
