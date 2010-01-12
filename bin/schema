@@ -20,21 +20,22 @@ EOTXT
 	exit(1)
 end
 
-if cmd == 'dump'
+case cmd
+when 'dump'
 	puts Taps::Schema.dump_without_indexes(database_url)
-elsif cmd == 'indexes'
+when 'indexes'
 	puts Taps::Schema.indexes(database_url)
-elsif cmd == 'load_indexes'
+when 'load_indexes'
 	filename = ARGV.shift.strip rescue ''
 	indexes = File.read(filename) rescue show_usage_and_exit
 	Taps::Schema.load_indexes(database_url, indexes)
-elsif cmd == 'load'
+when 'load'
 	filename = ARGV.shift.strip rescue ''
 	schema = File.read(filename) rescue show_usage_and_exit
 	Taps::Schema.load(database_url, schema)
-elsif cmd == 'reset_db_sequences'
+when 'reset_db_sequences'
 	Taps::Schema.reset_db_sequences(database_url)
-elsif cmd == 'console'
+when 'console'
 	Taps::Schema.connection(database_url)
 	$db = ActiveRecord::Base.connection
 	require 'irb'
