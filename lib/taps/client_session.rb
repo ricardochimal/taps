@@ -161,12 +161,10 @@ class ClientSession
 	end
 
 	def fetch_tables_info
-		record_count = 0
-		tables = db.tables
-		tables_with_counts = tables.inject({}) do |accum, table|
-			accum[table] = db[table].count
-			record_count += accum[table]
-			accum
+		tables_with_counts = {}
+		record_count = db.tables.inject(0) do |record_count, table|
+			tables_with_counts[table] = db[table].count
+			record_count += tables_with_counts[table]
 		end
 
 		[ tables_with_counts, record_count ]
