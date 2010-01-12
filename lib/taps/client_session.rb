@@ -114,10 +114,8 @@ class ClientSession
 
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
-
-		db.tables.each do |table_name|
+		tables_with_counts.each do |table_name, count|
 			table = db[table_name]
-			count = table.count
 			order = Taps::Utils.order_by(db, table_name)
 			chunksize = self.default_chunksize
 			string_columns = Taps::Utils.incorrect_blobs(db, table_name)
