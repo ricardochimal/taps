@@ -1,7 +1,8 @@
 require 'thor'
+require 'tempfile'
 require File.dirname(__FILE__) + '/config'
 
-Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || 'sqlite://taps.db'
+Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || "sqlite://#{Tempfile.new('taps.db').path}"
 
 module Taps
 class Cli < Thor
