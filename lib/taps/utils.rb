@@ -76,9 +76,11 @@ module Utils
 		chunksize = old_chunksize
 
 		retries = 0
+		time_in_db = 0
 		begin
 			t1 = Time.now
-			yield chunksize
+			time_in_db = yield chunksize
+			time_in_db = time_in_db.to_f rescue 0
 		rescue Errno::EPIPE, RestClient::RequestFailed
 			retries += 1
 			raise if retries > 2
@@ -92,7 +94,8 @@ module Utils
 
 		t2 = Time.now
 
-		diff = t2 - t1
+		diff = t2 - t1 - time_in_db
+
 		new_chunksize = if retries > 0
 			chunksize
 		elsif diff > 3.0

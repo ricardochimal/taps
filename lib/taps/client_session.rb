@@ -128,7 +128,9 @@ class ClientSession
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
+					time_db_started = Time.now
 					rows = Taps::Utils.format_data(table.order(*order).limit(c, offset).all, string_columns)
+					time_in_db = Time.now - time_db_started
 					break if rows == { }
 
 					row_size = rows[:data].size
@@ -145,6 +147,7 @@ class ClientSession
 						end
 						raise
 					end
+					time_in_db
 				end
 
 				progress.inc(row_size)
