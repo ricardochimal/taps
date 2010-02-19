@@ -35,7 +35,6 @@ Gem::Specification.new do |s|
      "lib/taps/utils.rb",
      "spec/base.rb",
      "spec/client_session_spec.rb",
-     "spec/schema_spec.rb",
      "spec/server_spec.rb",
      "spec/utils_spec.rb"
   ]
@@ -46,8 +45,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{simple database import/export app}
   s.test_files = [
-    "spec/schema_spec.rb",
-     "spec/client_session_spec.rb",
+    "spec/client_session_spec.rb",
      "spec/utils_spec.rb",
      "spec/base.rb",
      "spec/server_spec.rb"
@@ -61,20 +59,20 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<sinatra>, ["= 0.9.4"])
       s.add_runtime_dependency(%q<thor>, ["= 0.9.9"])
       s.add_runtime_dependency(%q<rest-client>, ["~> 1.3.0"])
-      s.add_runtime_dependency(%q<sequel>, [">= 3.7.0", "< 3.8.0"])
+      s.add_runtime_dependency(%q<sequel>, ["~> 3.8.0"])
       s.add_runtime_dependency(%q<sqlite3-ruby>, ["~> 1.2.0"])
     else
       s.add_dependency(%q<sinatra>, ["= 0.9.4"])
       s.add_dependency(%q<thor>, ["= 0.9.9"])
       s.add_dependency(%q<rest-client>, ["~> 1.3.0"])
-      s.add_dependency(%q<sequel>, [">= 3.7.0", "< 3.8.0"])
+      s.add_dependency(%q<sequel>, ["~> 3.8.0"])
       s.add_dependency(%q<sqlite3-ruby>, ["~> 1.2.0"])
     end
   else
     s.add_dependency(%q<sinatra>, ["= 0.9.4"])
     s.add_dependency(%q<thor>, ["= 0.9.9"])
     s.add_dependency(%q<rest-client>, ["~> 1.3.0"])
-    s.add_dependency(%q<sequel>, [">= 3.7.0", "< 3.8.0"])
+    s.add_dependency(%q<sequel>, ["~> 3.8.0"])
     s.add_dependency(%q<sqlite3-ruby>, ["~> 1.2.0"])
   end
 end
