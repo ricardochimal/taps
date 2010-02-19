@@ -46,11 +46,11 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{simple database import/export app}
   s.test_files = [
-    "spec/base.rb",
-     "spec/schema_spec.rb",
-     "spec/server_spec.rb",
+    "spec/schema_spec.rb",
      "spec/client_session_spec.rb",
-     "spec/utils_spec.rb"
+     "spec/utils_spec.rb",
+     "spec/server_spec.rb",
+     "spec/base.rb"
   ]
 
   if s.respond_to? :specification_version then
