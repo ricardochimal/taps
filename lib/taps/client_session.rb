@@ -126,13 +126,13 @@ class ClientSession
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-					time_db_started = Time.now
+					time_skip_start = Time.now
 					rows = Taps::Utils.format_data(table.order(*order).limit(c, offset).all, string_columns)
-					time_in_db = Time.now - time_db_started
 					break if rows == { }
 
 					row_size = rows[:data].size
 					gzip_data = Taps::Utils.gzip(Marshal.dump(rows))
+					time_skip = Time.now - time_skip_start
 
 					begin
 						session_resource["tables/#{table_name}"].post(gzip_data, http_headers({
@@ -145,7 +145,7 @@ class ClientSession
 						end
 						raise
 					end
-					time_in_db
+					time_skip
 				end
 
 				progress.inc(row_size)
