@@ -114,10 +114,8 @@ class ClientSession
 
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
-
-		db.tables.each do |table_name|
+		tables_with_counts.each do |table_name, count|
 			table = db[table_name]
-			count = table.count
 			order = Taps::Utils.order_by(db, table_name)
 			chunksize = self.default_chunksize
 			string_columns = Taps::Utils.incorrect_blobs(db, table_name)
@@ -161,12 +159,10 @@ class ClientSession
 	end
 
 	def fetch_tables_info
-		record_count = 0
-		tables = db.tables
-		tables_with_counts = tables.inject({}) do |accum, table|
-			accum[table] = db[table].count
-			record_count += accum[table]
-			accum
+		tables_with_counts = {}
+		record_count = db.tables.inject(0) do |record_count, table|
+			tables_with_counts[table] = db[table].count
+			record_count += tables_with_counts[table]
 		end
 
 		[ tables_with_counts, record_count ]
