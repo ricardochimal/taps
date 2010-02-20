@@ -2,4 +2,4 @@
 
 require File.dirname(__FILE__) + '/../lib/taps/cli'
 
-Taps::Cli.start
+Taps::Cli.new(ARGV.dup).run
