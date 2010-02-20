@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/base'
-require File.dirname(__FILE__) + '/../lib/taps/client_session'
+require 'taps/client_session'
 
 describe Taps::ClientSession do
 	before do

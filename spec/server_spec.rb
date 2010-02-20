@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/base'
 
-require File.dirname(__FILE__) + '/../lib/taps/server'
+require 'taps/server'
 
 require 'pp'
 

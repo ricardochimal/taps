@@ -4,6 +4,8 @@ require 'mocha'
 require 'rack/test'
 require 'tempfile'
 
+$:.unshift File.dirname(__FILE__) + "/../lib"
+
 class Bacon::Context
 	include Mocha::Standalone
 	include Rack::Test::Methods
@@ -19,6 +21,6 @@ class Bacon::Context
 	end
 end
 
-require File.dirname(__FILE__) + '/../lib/taps/config'
+require 'taps/config'
 Taps::Config.taps_database_url = "sqlite://#{Tempfile.new('test.db').path}"
 Sequel.connect(Taps::Config.taps_database_url)

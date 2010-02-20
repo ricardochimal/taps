@@ -1,9 +1,11 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-gem 'activerecord', '= 2.2.2'
+gem 'sequel', '~> 3.8.0'
 
-require File.dirname(__FILE__) + '/../lib/taps/schema'
+$:.unshift File.dirname(__FILE__) + '/../lib'
+
+require 'taps/schema'
 
 cmd = ARGV.shift.strip rescue ''
 database_url = ARGV.shift.strip rescue ''
@@ -22,7 +24,7 @@ end
 
 case cmd
 when 'dump'
-	puts Taps::Schema.dump_without_indexes(database_url)
+	puts Taps::Schema.dump(database_url)
 when 'indexes'
 	puts Taps::Schema.indexes(database_url)
 when 'load_indexes'
@@ -36,8 +38,7 @@ when 'load'
 when 'reset_db_sequences'
 	Taps::Schema.reset_db_sequences(database_url)
 when 'console'
-	Taps::Schema.connection(database_url)
-	$db = ActiveRecord::Base.connection
+	$db = Sequel.connect(database_url)
 	require 'irb'
 	require 'irb/completion'
 	IRB.start

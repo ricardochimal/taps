@@ -1,7 +1,7 @@
 require 'sinatra/base'
-require File.dirname(__FILE__) + '/config'
-require File.dirname(__FILE__) + '/utils'
-require File.dirname(__FILE__) + '/db_session'
+require 'taps/config'
+require 'taps/utils'
+require 'taps/db_session'
 
 module Taps
 class Server < Sinatra::Default
