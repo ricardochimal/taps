@@ -2,9 +2,9 @@ require 'rest_client'
 require 'sequel'
 require 'zlib'
 
-require File.dirname(__FILE__) + '/progress_bar'
-require File.dirname(__FILE__) + '/config'
-require File.dirname(__FILE__) + '/utils'
+require 'taps/progress_bar'
+require 'taps/config'
+require 'taps/utils'
 
 module Taps
 class ClientSession

@@ -1,6 +1,6 @@
 require 'optparse'
 require 'tempfile'
-require File.dirname(__FILE__) + '/config'
+require 'taps/config'
 
 Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || "sqlite://#{Tempfile.new('taps.db').path}"
 
@@ -38,7 +38,7 @@ class Cli
 		Taps::Config.password = opts[:password]
 
 		Taps::Config.verify_database_url
-		File.dirname(__FILE__) + '/server'
+		require 'taps/server'
 		Taps::Server.run!({
 			:port => opts[:port],
 			:environment => :production,
@@ -121,7 +121,7 @@ EOHELP
 
 		Taps::Config.verify_database_url
 
-		require File.dirname(__FILE__) + '/client_session'
+		require 'taps/client_session'
 
 		Taps::ClientSession.quickstart do |session|
 			session.send(method)

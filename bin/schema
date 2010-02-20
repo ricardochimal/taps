@@ -3,7 +3,9 @@
 require 'rubygems'
 gem 'sequel', '~> 3.8.0'
 
-require File.dirname(__FILE__) + '/../lib/taps/schema'
+$:.unshift File.dirname(__FILE__) + '/../lib'
+
+require 'taps/schema'
 
 cmd = ARGV.shift.strip rescue ''
 database_url = ARGV.shift.strip rescue ''

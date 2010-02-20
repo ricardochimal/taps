@@ -8,7 +8,9 @@ module Utils
 	extend self
 
 	def windows?
-		RUBY_PLATFORM =~ /mswin32|mingw32/
+		return @windows if defined?(@windows)
+		require 'rbconfig'
+		@windows = !!(Config::CONFIG['host_os'] =~ /mswin|mingw/)
 	end
 
 	def bin(cmd)

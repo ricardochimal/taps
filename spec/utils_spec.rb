@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/base'
-require File.dirname(__FILE__) + '/../lib/taps/utils'
+require 'taps/utils'
 
 describe Taps::Utils do
 	it "gunzips a string" do
