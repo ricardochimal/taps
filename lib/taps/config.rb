@@ -7,7 +7,9 @@ module Taps
 	end
 
 	def self.version
-		"#{version_yml[:major]}.#{version_yml[:minor]}.#{version_yml[:patch]}"
+		version = "#{version_yml[:major]}.#{version_yml[:minor]}.#{version_yml[:patch]}"
+		version += ".#{version_yml[:build]}" if version_yml[:build]
+		version
 	end
 
 	def self.compatible_version
