@@ -135,14 +135,19 @@ module Utils
 		if db.respond_to?(:primary_key)
 			db.primary_key(table)
 		else
-			db.schema(table).select { |c| c[1][:primary_key] }.map { |c| c.first }.shift
+			db.schema(table).select { |c| c[1][:primary_key] }.map { |c| c.first.to_sym }
 		end
+	end
+
+	def single_integer_primary_key(db, table)
+		keys = db.schema(table).select { |c| c[1][:primary_key] and c[1][:type] == :integer }
+		not keys.nil? and keys.size == 1
 	end
 
 	def order_by(db, table)
 		pkey = primary_key(db, table)
 		if pkey
-			[pkey.to_sym]
+			pkey.kind_of?(Array) ? pkey : [pkey.to_sym]
 		else
 			db[table].columns
 		end

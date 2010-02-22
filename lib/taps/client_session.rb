@@ -117,7 +117,7 @@ class ClientSession
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
 		tables_with_counts.each do |table_name, count|
-			stream = Taps::DataStream.new(db, table_name)
+			stream = Taps::DataStream.factory(db, table_name)
 
 			chunksize = default_chunksize
 			progress = ProgressBar.new(table_name.to_s, count)
