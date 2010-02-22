@@ -5,6 +5,7 @@ require 'zlib'
 require 'taps/progress_bar'
 require 'taps/config'
 require 'taps/utils'
+require 'taps/data_stream'
 
 module Taps
 class ClientSession
@@ -116,24 +117,16 @@ class ClientSession
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
 		tables_with_counts.each do |table_name, count|
-			table = db[table_name]
-			order = Taps::Utils.order_by(db, table_name)
-			chunksize = self.default_chunksize
-			string_columns = Taps::Utils.incorrect_blobs(db, table_name)
+			stream = Taps::DataStream.new(db, table_name)
 
+			chunksize = default_chunksize
 			progress = ProgressBar.new(table_name.to_s, count)
 
-			offset = 0
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-					time_skip_start = Time.now
-					rows = Taps::Utils.format_data(table.order(*order).limit(c, offset).all, string_columns)
-					break if rows == { }
-
-					row_size = rows[:data].size
-					gzip_data = Taps::Utils.gzip(Marshal.dump(rows))
-					time_skip = Time.now - time_skip_start
+					gzip_data, row_size, elapsed_time = stream.fetch(c)
+					break if stream.complete?
 
 					begin
 						session_resource["tables/#{table_name}"].post(gzip_data, http_headers({
@@ -146,13 +139,13 @@ class ClientSession
 						end
 						raise
 					end
-					time_skip
+					elapsed_time
 				end
 
 				progress.inc(row_size)
-				offset += row_size
 
-				break if row_size == 0
+				stream.increment(row_size)
+				break if stream.complete?
 			end
 
 			progress.finish
