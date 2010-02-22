@@ -9,46 +9,46 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
-  s.date = %q{2010-02-20}
+  s.date = %q{2010-02-21}
   s.description = %q{A simple database agnostic import/export app to transfer data to/from a remote database.}
   s.email = %q{ricardo@heroku.com}
   s.executables = ["taps", "schema"]
   s.extra_rdoc_files = [
     "LICENSE",
-     "README.rdoc"
+    "README.rdoc"
   ]
   s.files = [
     "LICENSE",
-     "README.rdoc",
-     "Rakefile",
-     "VERSION.yml",
-     "bin/schema",
-     "bin/schema.cmd",
-     "bin/taps",
-     "lib/taps/cli.rb",
-     "lib/taps/client_session.rb",
-     "lib/taps/config.rb",
-     "lib/taps/db_session.rb",
-     "lib/taps/progress_bar.rb",
-     "lib/taps/schema.rb",
-     "lib/taps/server.rb",
-     "lib/taps/utils.rb",
-     "spec/base.rb",
-     "spec/client_session_spec.rb",
-     "spec/server_spec.rb",
-     "spec/utils_spec.rb"
+    "README.rdoc",
+    "Rakefile",
+    "VERSION.yml",
+    "bin/schema",
+    "bin/schema.cmd",
+    "bin/taps",
+    "lib/taps/cli.rb",
+    "lib/taps/client_session.rb",
+    "lib/taps/config.rb",
+    "lib/taps/db_session.rb",
+    "lib/taps/progress_bar.rb",
+    "lib/taps/schema.rb",
+    "lib/taps/server.rb",
+    "lib/taps/utils.rb",
+    "spec/base.rb",
+    "spec/client_session_spec.rb",
+    "spec/server_spec.rb",
+    "spec/utils_spec.rb"
   ]
   s.homepage = %q{http://github.com/ricardochimal/taps}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{taps}
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{simple database import/export app}
   s.test_files = [
     "spec/base.rb",
-     "spec/client_session_spec.rb",
-     "spec/server_spec.rb",
-     "spec/utils_spec.rb"
+    "spec/client_session_spec.rb",
+    "spec/server_spec.rb",
+    "spec/utils_spec.rb"
   ]
 
   if s.respond_to? :specification_version then

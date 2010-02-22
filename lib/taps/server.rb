@@ -43,9 +43,10 @@ class Server < Sinatra::Default
 
 		rows = Marshal.load(Taps::Utils.gunzip(gzip_data))
 
-		db = session.connection
-		table = db[params[:table].to_sym]
-		table.import(rows[:header], rows[:data])
+		session.conn do |db|
+			table = db[params[:table].to_sym]
+			table.import(rows[:header], rows[:data])
+		end
 
 		"#{rows[:data].size}"
 	end
@@ -94,12 +95,13 @@ class Server < Sinatra::Default
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		db = session.connection
-		tables = db.tables
+		session.conn do |db|
+			tables = db.tables
 
-		tables_with_counts = tables.inject({}) do |accum, table|
-			accum[table] = db[table].count
-			accum
+			tables_with_counts = tables.inject({}) do |accum, table|
+				accum[table] = db[table].count
+				accum
+			end
 		end
 
 		Marshal.dump(tables_with_counts)
@@ -115,11 +117,12 @@ class Server < Sinatra::Default
 		offset = params[:offset].to_i
 		offset = 0 if offset < 0
 
-		db = session.connection
-		table = db[params[:table].to_sym]
-		order = Taps::Utils.order_by(db, params[:table].to_sym)
-		string_columns = Taps::Utils.incorrect_blobs(db, params[:table].to_sym)
-		raw_data = Marshal.dump(Taps::Utils.format_data(table.order(*order).limit(chunk, offset).all, string_columns))
+		session.conn do |db|
+			table = db[params[:table].to_sym]
+			order = Taps::Utils.order_by(db, params[:table].to_sym)
+			string_columns = Taps::Utils.incorrect_blobs(db, params[:table].to_sym)
+			raw_data = Marshal.dump(Taps::Utils.format_data(table.order(*order).limit(chunk, offset).all, string_columns))
+		end
 		gzip_data = Taps::Utils.gzip(raw_data)
 		response['Taps-Checksum'] = Taps::Utils.checksum(gzip_data).to_s
 		response['Content-Type'] = "application/octet-stream"

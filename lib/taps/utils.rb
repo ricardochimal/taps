@@ -10,7 +10,7 @@ module Utils
 	def windows?
 		return @windows if defined?(@windows)
 		require 'rbconfig'
-		@windows = !!(Config::CONFIG['host_os'] =~ /mswin|mingw/)
+		@windows = !!(::Config::CONFIG['host_os'] =~ /mswin|mingw/)
 	end
 
 	def bin(cmd)
@@ -83,7 +83,7 @@ module Utils
 			t1 = Time.now
 			time_in_db = yield chunksize
 			time_in_db = time_in_db.to_f rescue 0
-		rescue Errno::EPIPE, RestClient::RequestFailed
+		rescue Errno::EPIPE, RestClient::RequestFailed, RestClient::RequestTimeout
 			retries += 1
 			raise if retries > 2
 

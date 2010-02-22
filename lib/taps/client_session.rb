@@ -79,6 +79,7 @@ class ClientSession
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
+				puts "HTTP CODE: #{e.http_code}"
 				puts "#{e.response}"
 				exit(1)
 			else
@@ -178,7 +179,8 @@ class ClientSession
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
-				puts "#{e.response.body}"
+				puts "HTTP CODE: #{e.http_code}"
+				puts "#{e.response}"
 				exit(1)
 			else
 				raise
