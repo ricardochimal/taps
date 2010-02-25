@@ -1,5 +1,6 @@
 require 'sequel'
 require 'sqlite3'
+require 'yaml'
 
 module Taps
 	def self.version_yml
