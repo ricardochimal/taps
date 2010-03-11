@@ -8,13 +8,14 @@ begin
     s.description = "A simple database agnostic import/export app to transfer data to/from a remote database."
     s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
 
+    s.rubygems_version = %q{1.3.5}
+
     s.add_dependency 'sinatra', '= 0.9.4'
     s.add_dependency 'rest-client', '~> 1.3.0'
-    s.add_dependency 'sequel', '~> 3.8.0'
+    s.add_dependency 'sequel', '~> 3.9.0'
     s.add_dependency 'sqlite3-ruby', '~> 1.2.0'
 
     s.rubyforge_project = "taps"
-    s.rubygems_version = '1.3.1'
 
     s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile'] + FileList['bin/*']
     s.executables = ['taps', 'schema']
