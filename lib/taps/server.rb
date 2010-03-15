@@ -35,7 +35,7 @@ class Server < Sinatra::Base
 		"/sessions/#{key}"
 	end
 
-	post '/sessions/:key/tables/:table' do
+	post '/sessions/:key/push/table/:table' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -52,7 +52,7 @@ class Server < Sinatra::Base
 		"#{rows[:data].size}"
 	end
 
-	post '/sessions/:key/reset_sequences' do
+	post '/sessions/:key/push/reset_sequences' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -60,7 +60,7 @@ class Server < Sinatra::Base
 		Taps::Utils.schema_bin(:reset_db_sequences, session.database_url)
 	end
 
-	post '/sessions/:key/schema' do
+	post '/sessions/:key/push/schema' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -68,7 +68,7 @@ class Server < Sinatra::Base
 		Taps::Utils.load_schema(session.database_url, schema_data)
 	end
 
-	post '/sessions/:key/indexes' do
+	post '/sessions/:key/push/indexes' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -76,7 +76,7 @@ class Server < Sinatra::Base
 		Taps::Utils.load_indexes(session.database_url, index_data)
 	end
 
-	get '/sessions/:key/schema' do
+	get '/sessions/:key/pull/schema' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -84,7 +84,7 @@ class Server < Sinatra::Base
 		Taps::Utils.schema_bin(:dump, session.database_url)
 	end
 
-	get '/sessions/:key/indexes' do
+	get '/sessions/:key/pull/indexes' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -92,7 +92,7 @@ class Server < Sinatra::Base
 		Taps::Utils.schema_bin(:indexes, session.database_url)
 	end
 
-	get '/sessions/:key/tables' do
+	get '/sessions/:key/pull/tables' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
@@ -108,7 +108,7 @@ class Server < Sinatra::Base
 		Marshal.dump(tables_with_counts)
 	end
 
-	post '/sessions/:key/table' do
+	post '/sessions/:key/pull/table' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 

@@ -96,20 +96,20 @@ class ClientSession
 		puts "Sending indexes"
 
 		index_data = Taps::Utils.schema_bin(:indexes, database_url)
-		session_resource['indexes'].post(index_data, http_headers)
+		session_resource['push/indexes'].post(index_data, http_headers)
 	end
 
 	def cmd_send_schema
 		puts "Sending schema"
 
 		schema_data = Taps::Utils.schema_bin(:dump, database_url)
-		session_resource['schema'].post(schema_data, http_headers)
+		session_resource['push/schema'].post(schema_data, http_headers)
 	end
 
 	def cmd_send_reset_sequences
 		puts "Resetting sequences"
 
-		session_resource["reset_sequences"].post('', http_headers)
+		session_resource['push/reset_sequences'].post('', http_headers)
 	end
 
 	def cmd_send_data
@@ -132,7 +132,7 @@ class ClientSession
 					break if stream.complete?
 
 					begin
-						session_resource["tables/#{table_name}"].post(gzip_data, http_headers({
+						session_resource["push/table/#{table_name}"].post(gzip_data, http_headers({
 							:content_type => 'application/octet-stream',
 							:taps_checksum => Taps::Utils.checksum(gzip_data).to_s}))
 					rescue RestClient::RequestFailed => e
@@ -202,7 +202,7 @@ class ClientSession
 
 			loop do
 				begin
-					size = stream.fetch_remote(session_resource["table"], http_headers)
+					size = stream.fetch_remote(session_resource['pull/table'], http_headers)
 					break if stream.complete?
 					progress.inc(size)
 				rescue DataStream::CorruptedData
@@ -218,7 +218,7 @@ class ClientSession
 		retries = 0
 		max_retries = 1
 		begin
-			tables_with_counts = Marshal.load(session_resource['tables'].get(http_headers).body.to_s)
+			tables_with_counts = Marshal.load(session_resource['pull/tables'].get(http_headers).body.to_s)
 			record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
 		rescue RestClient::Exception
 			retries += 1
@@ -233,7 +233,7 @@ class ClientSession
 	def cmd_receive_schema
 		puts "Receiving schema"
 
-		schema_data = session_resource['schema'].get(http_headers)
+		schema_data = session_resource['pull/schema'].get(http_headers).body.to_s
 		output = Taps::Utils.load_schema(database_url, schema_data)
 		puts output if output
 	end
@@ -241,7 +241,7 @@ class ClientSession
 	def cmd_receive_indexes
 		puts "Receiving indexes"
 
-		index_data = session_resource['indexes'].get(http_headers)
+		index_data = session_resource['pull/indexes'].get(http_headers).body.to_s
 
 		output = Taps::Utils.load_indexes(database_url, index_data)
 		puts output if output
