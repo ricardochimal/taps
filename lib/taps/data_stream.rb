@@ -1,13 +1,30 @@
+require 'taps/monkey'
+require 'taps/multipart'
+require 'json'
+
 module Taps
 
 class DataStream
-	attr_reader :db, :table_name, :state
+	class CorruptedData < Exception; end
 
-	def initialize(db, table_name)
+	attr_reader :db, :state
+
+	def initialize(db, state)
 		@db = db
-		@table_name = table_name
-		@state = { :offset => 0 }
+		@state = { :offset => 0 }.merge(state)
 		@complete = false
+	end
+
+	def table_name
+		state[:table_name].to_sym
+	end
+
+	def to_hash
+		state.merge(:klass => self.class.to_s)
+	end
+
+	def to_json
+		to_hash.to_json
 	end
 
 	def string_columns
@@ -27,14 +44,17 @@ class DataStream
 	end
 
 	def fetch_rows(chunksize)
-		Taps::Utils.format_data(table.order(*order_by).limit(chunksize, state[:offset]).all, string_columns)
+		ds = table.order(*order_by).limit(chunksize, state[:offset])
+		Taps::Utils.format_data(ds.all, string_columns)
 	end
 
 	def compress_rows(rows)
 		Taps::Utils.gzip(Marshal.dump(rows))
 	end
 
-	def fetch(chunksize)
+	def fetch(chunksize=nil)
+		chunksize ||= state[:chunksize]
+
 		t1 = Time.now
 		rows = fetch_rows(chunksize)
 		gzip_data = compress_rows(rows)
@@ -50,11 +70,64 @@ class DataStream
 		@complete
 	end
 
-	def self.factory(db, table_name)
-		if Taps::Utils.single_integer_primary_key(db, table_name)
-			DataStreamKeyed.new(db, table_name)
+	def fetch_remote(resource, headers)
+		params = fetch_from_resource(resource, headers)
+		gzip_data = params[:gzip_data]
+		json = params[:json]
+
+		rows = parse_gzip_data(gzip_data, json[:checksum])
+		@complete = rows == { }
+
+		unless @complete
+			import_rows(rows)
+			rows[:data].size
 		else
-			DataStream.new(db, table_name)
+			0
+		end
+	end
+
+	def fetch_from_resource(resource, headers)
+		res = nil
+		state[:chunksize] = Taps::Utils.calculate_chunksize(state[:chunksize]) do |c|
+			state[:chunksize] = c
+			res = resource.post({:state => self.to_json}, headers)
+		end
+
+		begin
+			params = Taps::Multipart.parse(res)
+			if params.has_key?(:json)
+				params[:json] = JSON.parse(params[:json]).symbolize_keys
+				params[:json][:state].symbolize_keys! if params[:json].has_key?(:state)
+			end
+			return params
+		rescue JSON::Parser
+			raise DataStream::CorruptedData
+		end
+	end
+
+	def parse_gzip_data(gzip_data, checksum)
+		raise DataStream::CorruptedData unless Taps::Utils.valid_data?(gzip_data, checksum)
+
+		begin
+			return Marshal.load(Taps::Utils.gunzip(gzip_data))
+		rescue Object => e
+			puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.gz"
+			File.open("dump.#{Process.pid}.gz", "w") { |f| f.write(gzip_data) }
+			raise
+		end
+	end
+
+	def import_rows(rows)
+		table.import(rows[:header], rows[:data])
+		state[:offset] += rows[:data].size
+	end
+
+	def self.factory(db, state)
+		return DataStream.new(db, state)
+		if Taps::Utils.single_integer_primary_key(db, state[:table_name].to_sym)
+			DataStreamKeyed.new(db, state)
+		else
+			DataStream.new(db, state)
 		end
 	end
 end
@@ -63,8 +136,9 @@ end
 class DataStreamKeyed < DataStream
 	attr_accessor :buffer
 
-	def initialize(*args)
-		super(*args)
+	def initialize(db, state)
+		super(db, state)
+		@state = { :primary_key => order_by.first, :filter => 0 }.merge(state)
 		@buffer = []
 		setup_state
 	end

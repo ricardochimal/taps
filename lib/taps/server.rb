@@ -2,9 +2,10 @@ require 'sinatra/base'
 require 'taps/config'
 require 'taps/utils'
 require 'taps/db_session'
+require 'taps/data_stream'
 
 module Taps
-class Server < Sinatra::Default
+class Server < Sinatra::Base
 	use Rack::Auth::Basic do |login, password|
 		login == Taps::Config.login && password == Taps::Config.password
 	end
@@ -95,9 +96,9 @@ class Server < Sinatra::Default
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
+		tables_with_counts = nil
 		session.conn do |db|
 			tables = db.tables
-
 			tables_with_counts = tables.inject({}) do |accum, table|
 				accum[table] = db[table].count
 				accum
@@ -107,26 +108,35 @@ class Server < Sinatra::Default
 		Marshal.dump(tables_with_counts)
 	end
 
-	get '/sessions/:key/tables/:table/:chunk' do
+	post '/sessions/:key/table' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		chunk = params[:chunk].to_i
-		chunk = 500 if chunk < 1
-
-		offset = params[:offset].to_i
-		offset = 0 if offset < 0
+		gzip_data = nil
+		stream = nil
 
 		session.conn do |db|
-			table = db[params[:table].to_sym]
-			order = Taps::Utils.order_by(db, params[:table].to_sym)
-			string_columns = Taps::Utils.incorrect_blobs(db, params[:table].to_sym)
-			raw_data = Marshal.dump(Taps::Utils.format_data(table.order(*order).limit(chunk, offset).all, string_columns))
+			state = JSON.parse(params[:state]).symbolize_keys
+			stream = Taps::DataStream.factory(db, state)
+			gzip_data = stream.fetch.first
 		end
-		gzip_data = Taps::Utils.gzip(raw_data)
-		response['Taps-Checksum'] = Taps::Utils.checksum(gzip_data).to_s
-		response['Content-Type'] = "application/octet-stream"
-		gzip_data
+
+		checksum = Taps::Utils.checksum(gzip_data).to_s
+		json = { :checksum => checksum, :state => stream.to_hash }.to_json
+
+		content, content_type_value = Taps::Multipart.create({
+			:gzip_data => Taps::Multipart.new({
+				:payload => gzip_data,
+				:content_type => 'application/octet-stream',
+			}),
+			:json => Taps::Multipart.new({
+				:payload => json,
+				:content_type => 'application/json'
+			})
+		})
+
+		content_type content_type_value
+		content
 	end
 
 	delete '/sessions/:key' do

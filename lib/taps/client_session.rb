@@ -7,6 +7,9 @@ require 'taps/config'
 require 'taps/utils'
 require 'taps/data_stream'
 
+# disable warnings, rest client makes a lot of noise right now
+$VERBOSE = nil
+
 module Taps
 class ClientSession
 	attr_reader :database_url, :remote_url, :default_chunksize
@@ -80,8 +83,8 @@ class ClientSession
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
-				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response}"
+				puts "HTTP CODE: #{e.response.code}"
+				puts "#{e.response.body}"
 				exit(1)
 			else
 				raise
@@ -117,7 +120,7 @@ class ClientSession
 		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
 
 		tables_with_counts.each do |table_name, count|
-			stream = Taps::DataStream.factory(db, table_name)
+			stream = Taps::DataStream.factory(db, :table_name => table_name)
 
 			chunksize = default_chunksize
 			progress = ProgressBar.new(table_name.to_s, count)
@@ -182,7 +185,7 @@ class ClientSession
 	end
 
 	def cmd_receive_data
-		puts "Receiving data"
+		puts "Receiving data (new)"
 
 		tables_with_counts, record_count = fetch_remote_tables_info
 
@@ -190,53 +193,32 @@ class ClientSession
 
 		tables_with_counts.each do |table_name, count|
 			table = db[table_name.to_sym]
-			chunksize = default_chunksize
 
 			progress = ProgressBar.new(table_name.to_s, count)
+			stream = Taps::DataStream.factory(db, {
+				:chunksize => default_chunksize,
+				:table_name => table_name
+			})
 
-			offset = 0
 			loop do
 				begin
-					chunksize, rows = fetch_table_rows(table_name, chunksize, offset)
-				rescue CorruptedData
+					size = stream.fetch_remote(session_resource["table"], http_headers)
+					break if stream.complete?
+					progress.inc(size)
+				rescue DataStream::CorruptedData
 					next
 				end
-				break if rows == { }
-
-				table.import(rows[:header], rows[:data])
-
-				progress.inc(rows[:data].size)
-				offset += rows[:data].size
 			end
 
 			progress.finish
 		end
 	end
 
-	class CorruptedData < Exception; end
-
-	def fetch_table_rows(table_name, chunksize, offset)
-		response = nil
-		chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-			response = session_resource["tables/#{table_name}/#{c}?offset=#{offset}"].get(http_headers)
-		end
-		raise CorruptedData unless Taps::Utils.valid_data?(response.to_s, response.headers[:taps_checksum])
-
-		begin
-			rows = Marshal.load(Taps::Utils.gunzip(response.to_s))
-		rescue Object => e
-			puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.gz"
-			File.open("dump.#{Process.pid}.gz", "w") { |f| f.write(response.to_s) }
-			raise
-		end
-		[chunksize, rows]
-	end
-
 	def fetch_remote_tables_info
 		retries = 0
 		max_retries = 1
 		begin
-			tables_with_counts = Marshal.load(session_resource['tables'].get(http_headers))
+			tables_with_counts = Marshal.load(session_resource['tables'].get(http_headers).body.to_s)
 			record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
 		rescue RestClient::Exception
 			retries += 1
