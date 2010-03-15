@@ -5,14 +5,36 @@ require 'stringio'
 
 module Taps
 class Multipart
+	class Container
+		attr_accessor :attachments
+
+		def initialize
+			@attachments = []
+		end
+
+		def attach(opts)
+			mp = Taps::Multipart.new(opts)
+			attachments << mp
+		end
+
+		def generate
+			hash = {}
+			attachments.each do |mp|
+				hash[mp.name] = mp
+			end
+			m = RestClient::Payload::Multipart.new(hash)
+			[m.to_s, m.headers['Content-Type']]
+		end
+	end
+
 	attr_reader :opts
 
 	def initialize(opts={})
 		@opts = opts
 	end
 
-	def read
-		opts[:payload]
+	def name
+		opts[:name]
 	end
 
 	def to_s
@@ -27,9 +49,10 @@ class Multipart
 		opts[:original_filename]
 	end
 
-	def self.create(opts)
-		m = RestClient::Payload::Multipart.new(opts)
-		[m.to_s, m.headers['Content-Type']]
+	def self.create
+		c = Taps::Multipart::Container.new
+		yield c
+		c.generate
 	end
 
 	# response is a rest-client response

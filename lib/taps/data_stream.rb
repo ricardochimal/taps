@@ -86,6 +86,22 @@ class DataStream
 		end
 	end
 
+	# this one is used inside the server process
+	def fetch_remote_in_server(params)
+		json = self.class.parse_json(params[:json])
+		gzip_data = params[:gzip_data]
+
+		rows = parse_gzip_data(gzip_data, json[:checksum])
+		@complete = rows == { }
+
+		unless @complete
+			import_rows(rows)
+			rows[:data].size
+		else
+			0
+		end
+	end
+
 	def fetch_from_resource(resource, headers)
 		res = nil
 		state[:chunksize] = Taps::Utils.calculate_chunksize(state[:chunksize]) do |c|
@@ -95,14 +111,17 @@ class DataStream
 
 		begin
 			params = Taps::Multipart.parse(res)
-			if params.has_key?(:json)
-				params[:json] = JSON.parse(params[:json]).symbolize_keys
-				params[:json][:state].symbolize_keys! if params[:json].has_key?(:state)
-			end
+			params[:json] = self.class.parse_json(params[:json]) if params.has_key?(:json)
 			return params
 		rescue JSON::Parser
 			raise DataStream::CorruptedData
 		end
+	end
+
+	def self.parse_json(json)
+		hash = JSON.parse(json).symbolize_keys
+		hash[:state].symbolize_keys! if hash.has_key?(:state)
+		hash
 	end
 
 	def parse_gzip_data(gzip_data, checksum)

@@ -35,21 +35,23 @@ class Server < Sinatra::Base
 		"/sessions/#{key}"
 	end
 
-	post '/sessions/:key/push/table/:table' do
+	post '/sessions/:key/push/table' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		gzip_data = request.body.read
-		halt 412 unless Taps::Utils.valid_data?(gzip_data, request.env['HTTP_TAPS_CHECKSUM'])
+		json = DataStream.parse_json(params[:json])
 
-		rows = Marshal.load(Taps::Utils.gunzip(gzip_data))
-
+		size = 0
 		session.conn do |db|
-			table = db[params[:table].to_sym]
-			table.import(rows[:header], rows[:data])
+			begin
+				stream = DataStream.factory(db, json[:state])
+				size = stream.fetch_remote_in_server(params)
+			rescue Taps::DataStream::CorruptedData
+				halt 412
+			end
 		end
 
-		"#{rows[:data].size}"
+		size.to_s
 	end
 
 	post '/sessions/:key/push/reset_sequences' do
@@ -124,16 +126,14 @@ class Server < Sinatra::Base
 		checksum = Taps::Utils.checksum(gzip_data).to_s
 		json = { :checksum => checksum, :state => stream.to_hash }.to_json
 
-		content, content_type_value = Taps::Multipart.create({
-			:gzip_data => Taps::Multipart.new({
+		content, content_type_value = Taps::Multipart.create do |r|
+			r.attach :name => :gzip_data,
 				:payload => gzip_data,
-				:content_type => 'application/octet-stream',
-			}),
-			:json => Taps::Multipart.new({
+				:content_type => 'application/octet-stream'
+			r.attach :name => :json,
 				:payload => json,
 				:content_type => 'application/json'
-			})
-		})
+		end
 
 		content_type content_type_value
 		content

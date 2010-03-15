@@ -83,7 +83,7 @@ class ClientSession
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
-				puts "HTTP CODE: #{e.response.code}"
+				puts "HTTP CODE: #{e.http_code}"
 				puts "#{e.response.body}"
 				exit(1)
 			else
@@ -131,10 +131,21 @@ class ClientSession
 					gzip_data, row_size, elapsed_time = stream.fetch(c)
 					break if stream.complete?
 
+					data = {
+						:state => stream.to_hash,
+						:checksum => Taps::Utils.checksum(gzip_data).to_s
+					}
+
 					begin
-						session_resource["push/table/#{table_name}"].post(gzip_data, http_headers({
-							:content_type => 'application/octet-stream',
-							:taps_checksum => Taps::Utils.checksum(gzip_data).to_s}))
+						content, content_type = Taps::Multipart.create do |r|
+							r.attach :name => :gzip_data,
+								:payload => gzip_data,
+								:content_type => 'application/octet-stream'
+							r.attach :name => :json,
+								:payload => data.to_json,
+								:content_type => 'application/json'
+						end
+						session_resource['push/table'].post(content, http_headers(:content_type => content_type))
 					rescue RestClient::RequestFailed => e
 						# retry the same data, it got corrupted somehow.
 						if e.http_code == 412
