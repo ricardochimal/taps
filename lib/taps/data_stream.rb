@@ -11,8 +11,21 @@ class DataStream
 
 	def initialize(db, state)
 		@db = db
-		@state = { :offset => 0 }.merge(state)
+		@state = {
+			:offset => 0,
+			:avg_chunksize => 0,
+			:num_chunksize => 0,
+			:total_chunksize => 0,
+		}.merge(state)
 		@complete = false
+	end
+
+	def error=(val)
+		state[:error] = val
+	end
+
+	def error
+		state[:error] || false
 	end
 
 	def table_name
@@ -35,33 +48,61 @@ class DataStream
 		@table ||= db[table_name]
 	end
 
-	def order_by
-		@order_by ||= Taps::Utils.order_by(db, table_name)
+	def order_by(name=nil)
+		@order_by ||= begin
+			name ||= table_name
+			Taps::Utils.order_by(db, name)
+		end
 	end
 
 	def increment(row_count)
 		state[:offset] += row_count
 	end
 
-	def fetch_rows(chunksize)
-		ds = table.order(*order_by).limit(chunksize, state[:offset])
-		Taps::Utils.format_data(ds.all, string_columns)
+	# keep a record of the average chunksize within the first few hundred thousand records, after chunksize
+	# goes below 100 or maybe if offset is > 1000
+	def fetch_rows
+		state[:chunksize] = fetch_chunksize
+		ds = table.order(*order_by).limit(state[:chunksize], state[:offset])
+# 		puts ds.sql
+		rows = Taps::Utils.format_data(ds.all, string_columns)
+		update_chunksize_stats
+		rows
+	end
+
+	def max_chunksize_training
+		20
+	end
+
+	def fetch_chunksize
+		chunksize = state[:chunksize]
+		return chunksize if state[:num_chunksize] < max_chunksize_training
+		return chunksize if state[:avg_chunksize] == 0
+		return chunksize if state[:error]
+		state[:avg_chunksize] > chunksize ? state[:avg_chunksize] : chunksize
+	end
+
+	def update_chunksize_stats
+		return if state[:num_chunksize] >= max_chunksize_training
+		state[:total_chunksize] += state[:chunksize]
+		state[:num_chunksize] += 1
+		state[:avg_chunksize] = state[:total_chunksize] / state[:num_chunksize] rescue state[:chunksize]
 	end
 
 	def compress_rows(rows)
 		Taps::Utils.gzip(Marshal.dump(rows))
 	end
 
-	def fetch(chunksize=nil)
-		chunksize ||= state[:chunksize]
-
+	def fetch
 		t1 = Time.now
-		rows = fetch_rows(chunksize)
+		rows = fetch_rows
 		gzip_data = compress_rows(rows)
 		t2 = Time.now
 		elapsed_time = t2 - t1
 
 		@complete = rows == { }
+
+# 		puts state.inspect
 
 		[gzip_data, (@complete ? 0 : rows[:data].size), elapsed_time]
 	end
@@ -77,6 +118,9 @@ class DataStream
 
 		rows = parse_gzip_data(gzip_data, json[:checksum])
 		@complete = rows == { }
+
+		# update local state
+		state.merge!(json[:state].merge(:chunksize => state[:chunksize]))
 
 		unless @complete
 			import_rows(rows)
@@ -104,6 +148,7 @@ class DataStream
 
 	def fetch_from_resource(resource, headers)
 		res = nil
+# 		puts state.inspect
 		state[:chunksize] = Taps::Utils.calculate_chunksize(state[:chunksize]) do |c|
 			state[:chunksize] = c
 			res = resource.post({:state => self.to_json}, headers)
@@ -142,7 +187,10 @@ class DataStream
 	end
 
 	def self.factory(db, state)
-		return DataStream.new(db, state)
+		if state.has_key?(:klass)
+			return eval(state[:klass]).new(db, state)
+		end
+
 		if Taps::Utils.single_integer_primary_key(db, state[:table_name].to_sym)
 			DataStreamKeyed.new(db, state)
 		else
@@ -157,41 +205,81 @@ class DataStreamKeyed < DataStream
 
 	def initialize(db, state)
 		super(db, state)
-		@state = { :primary_key => order_by.first, :filter => 0 }.merge(state)
+		@state = { :primary_key => order_by(state[:table_name]).first, :filter => 0 }.merge(state)
 		@buffer = []
-		setup_state
 	end
 
-	def setup_state
-		state[:primary_key] = order_by.first
-		state[:filter] = 0
+	def primary_key
+		state[:primary_key].to_sym
 	end
 
-	# load the buffer for chunksize * 2
 	def load_buffer(chunksize)
 		num = 0
 		loop do
-			data = table.order(*order_by).filter(state[:primary_key] > state[:filter]).limit(chunksize*2).all
+			limit = (chunksize * 1.5).ceil
+			ds = table.order(*order_by).filter(primary_key > state[:filter]).limit(limit)
+# 			puts ds.sql
+			data = ds.all
 			self.buffer += data
 			num += data.size
 			if data.size > 0
 				# keep a record of the last primary key value in the buffer
-				state[:filter] = self.buffer.last[ state[:primary_key] ]
+				state[:filter] = self.buffer.last[ primary_key ]
 			end
 
 			break if num >= chunksize or data.size == 0
 		end
 	end
 
-	def fetch_rows(chunksize)
-		load_buffer(chunksize) if self.buffer.size < chunksize
-		Taps::Utils.format_data(buffer.slice(0, chunksize) || [], string_columns)
+	def buffer_limit
+		if state[:last_fetched] and state[:last_fetched] < state[:filter] and self.buffer.size == 0
+			state[:last_fetched]
+		else
+			state[:filter]
+		end
+	end
+
+	def load_buffer2(chunksize)
+		num = 0
+		loop do
+			limit = (chunksize * 1.1).ceil - num
+			ds = table.order(*order_by).filter(primary_key > buffer_limit).limit(limit)
+# 			puts ds.sql
+			data = ds.all
+			self.buffer += data
+			num += data.size
+			if data.size > 0
+				# keep a record of the last primary key value in the buffer
+				state[:filter] = self.buffer.last[ primary_key ]
+			end
+
+			break if num >= chunksize or data.size == 0
+		end
+	end
+
+	def fetch_buffered(chunksize)
+		load_buffer2(chunksize) if self.buffer.size < chunksize
+		rows = buffer.slice(0, chunksize)
+		state[:last_fetched] = if rows.size > 0
+			rows.last[ primary_key ]
+		else
+			nil
+		end
+		rows
+	end
+
+	def import_rows(rows)
+		table.import(rows[:header], rows[:data])
+	end
+
+	def fetch_rows
+		chunksize = state[:chunksize]
+		Taps::Utils.format_data(fetch_buffered(chunksize) || [], string_columns)
 	end
 
 	def increment(row_count)
 		# pop the rows we just successfully sent off the buffer
 		@buffer.slice!(0, row_count)
-		super
 	end
 end
 

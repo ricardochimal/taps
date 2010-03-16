@@ -12,7 +12,7 @@ class Server < Sinatra::Base
 
 	error do
 		e = request.env['sinatra.error']
-		"Taps Server Error: #{e}"
+		"Taps Server Error: #{e}\n#{e.backtrace}"
 	end
 
 	before do
@@ -119,6 +119,7 @@ class Server < Sinatra::Base
 
 		session.conn do |db|
 			state = JSON.parse(params[:state]).symbolize_keys
+# 			puts state.inspect
 			stream = Taps::DataStream.factory(db, state)
 			gzip_data = stream.fetch.first
 		end

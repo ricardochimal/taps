@@ -42,7 +42,8 @@ class Cli
 		Taps::Server.run!({
 			:port => opts[:port],
 			:environment => :production,
-			:logging => true
+			:logging => true,
+			:dump_errors => true,
 		})
 	end
 

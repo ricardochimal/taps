@@ -128,7 +128,8 @@ class ClientSession
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-					gzip_data, row_size, elapsed_time = stream.fetch(c)
+					stream.state[:checksum] = c
+					gzip_data, row_size, elapsed_time = stream.fetch
 					break if stream.complete?
 
 					data = {
@@ -216,7 +217,9 @@ class ClientSession
 					size = stream.fetch_remote(session_resource['pull/table'], http_headers)
 					break if stream.complete?
 					progress.inc(size)
+					stream.error = false
 				rescue DataStream::CorruptedData
+					stream.error = true
 					next
 				end
 			end
