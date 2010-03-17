@@ -128,7 +128,7 @@ class ClientSession
 			loop do
 				row_size = 0
 				chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-					stream.state[:checksum] = c
+					stream.state[:chunksize] = c
 					gzip_data, row_size, elapsed_time = stream.fetch
 					break if stream.complete?
 
