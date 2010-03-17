@@ -26,16 +26,24 @@ module Utils
 		Zlib.crc32(data) == crc32.to_i
 	end
 
+	def base64encode(data)
+		[data].pack("m").first
+	end
+
+	def base64decode(data)
+		data.unpack("m").first
+	end
+
 	def gzip(data)
 		io = StringIO.new
 		gz = Zlib::GzipWriter.new(io)
 		gz.write data
 		gz.close
-		io.string
+		base64encode(io.string)
 	end
 
 	def gunzip(gzip_data)
-		io = StringIO.new(gzip_data)
+		io = StringIO.new(base64decode(gzip_data))
 		gz = Zlib::GzipReader.new(io)
 		data = gz.read
 		gz.close
