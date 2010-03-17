@@ -144,7 +144,6 @@ class Server < Sinatra::Base
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		session.disconnect
 		session.destroy
 
 		"ok"
