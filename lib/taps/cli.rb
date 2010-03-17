@@ -22,12 +22,12 @@ class Cli
 	end
 
 	def pull
-		opts = clientoptparse
+		opts = clientoptparse(:pull)
 		clientxfer(:cmd_receive, opts[:database_url], opts[:remote_url], opts[:chunksize])
 	end
 
 	def push
-		opts = clientoptparse
+		opts = clientoptparse(:push)
 		clientxfer(:cmd_send, opts[:database_url], opts[:remote_url], opts[:chunksize])
 	end
 
@@ -55,17 +55,23 @@ class Cli
 		puts <<EOHELP
 Options
 =======
-server  <local_database_url> <login> <password> [--port=N]    Start a taps database import/export server
-pull    <local_database_url> <remote_url> [--chunksize=N]     Pull a database from a taps server
-push    <local_database_url> <remote_url> [--chunksize=N]     Push a database to a taps server
-version                                                       Taps version
+server    Start a taps database import/export server
+pull      Pull a database from a taps server
+push      Push a database to a taps server
+version   Taps version
+
+Add '-h' to any command to see their usage
 EOHELP
 	end
 
 	def serveroptparse
-		opts={:port => 5000, :database_url => nil, :login => nil, :password => nil}
+		opts={:port => 5000, :database_url => nil, :login => nil, :password => nil, :debug => false}
 		OptionParser.new do |o|
-			o.on("-p", "--port=N", "Port") { |v| opts[:port] = v.to_i if v.to_i > 0 }
+			o.banner = "Usage: #{File.basename($0)} server [OPTIONS] <local_database_url> <login> <password>"
+			o.define_head "Start a taps database import/export server"
+
+			o.on("-p", "--port=N", "Server Port") { |v| opts[:port] = v.to_i if v.to_i > 0 }
+			o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
 			o.parse!(argv)
 
 			opts[:database_url] = argv.shift
@@ -74,27 +80,37 @@ EOHELP
 
 			if opts[:database_url].nil?
 				$stderr.puts "Missing Database URL"
-				help
+				puts o
 				exit 1
 			end
 			if opts[:login].nil?
 				$stderr.puts "Missing Login"
-				help
+				puts o
 				exit 1
 			end
 			if opts[:password].nil?
 				$stderr.puts "Missing Password"
-				help
+				puts o
 				exit 1
 			end
 		end
 		opts
 	end
 
-	def clientoptparse
-		opts={:chunksize => 1000, :database_url => nil, :remote_url => nil}
+	def clientoptparse(cmd)
+		opts={:chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false}
 		OptionParser.new do |o|
-			o.on("-c", "--chunksize=N", "Chunksize") { |v| opts[:chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
+			o.banner = "Usage: #{File.basename($0)} #{cmd} [OPTIONS] <local_database_url> <remote_url>"
+
+			case cmd
+			when :pull
+				o.define_head "Pull a database from a taps server"
+			when :push
+				o.define_head "Push a database to a taps server"
+			end
+
+			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
+			o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
 			o.parse!(argv)
 
 			opts[:database_url] = argv.shift
@@ -102,12 +118,12 @@ EOHELP
 
 			if opts[:database_url].nil?
 				$stderr.puts "Missing Database URL"
-				help
+				puts o
 				exit 1
 			end
 			if opts[:remote_url].nil?
 				$stderr.puts "Missing Remote Taps URL"
-				help
+				puts o
 				exit 1
 			end
 		end
