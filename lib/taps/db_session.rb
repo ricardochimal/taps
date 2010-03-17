@@ -10,18 +10,10 @@ class DbSession < Sequel::Model
 		timestamp :last_access
 	end
 
-	def connection
-		@connnection ||= Sequel.connect(database_url)
-	end
-
-	def disconnect
-		connection.disconnect if connection
-	end
-
 	def conn
-		yield connection if block_given?
-	ensure
-		disconnect
+		Sequel.connect(database_url) do |db|
+			yield db if block_given?
+		end
 	end
 end
 
