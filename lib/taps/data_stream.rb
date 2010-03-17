@@ -159,7 +159,7 @@ class DataStream
 			params[:json] = self.class.parse_json(params[:json]) if params.has_key?(:json)
 			return params
 		rescue JSON::Parser
-			raise DataStream::CorruptedData
+			raise DataStream::CorruptedData.new("Invalid JSON Received")
 		end
 	end
 
@@ -170,7 +170,7 @@ class DataStream
 	end
 
 	def parse_gzip_data(gzip_data, checksum)
-		raise DataStream::CorruptedData unless Taps::Utils.valid_data?(gzip_data, checksum)
+		raise DataStream::CorruptedData.new("Checksum Failed") unless Taps::Utils.valid_data?(gzip_data, checksum)
 
 		begin
 			return Marshal.load(Taps::Utils.gunzip(gzip_data))
