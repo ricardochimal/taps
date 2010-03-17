@@ -23,12 +23,12 @@ class Cli
 
 	def pull
 		opts = clientoptparse(:pull)
-		clientxfer(:cmd_receive, opts[:database_url], opts[:remote_url], opts[:chunksize])
+		clientxfer(:pull, opts[:database_url], opts[:remote_url], opts[:chunksize])
 	end
 
 	def push
 		opts = clientoptparse(:push)
-		clientxfer(:cmd_send, opts[:database_url], opts[:remote_url], opts[:chunksize])
+		clientxfer(:push, opts[:database_url], opts[:remote_url], opts[:chunksize])
 	end
 
 	def server

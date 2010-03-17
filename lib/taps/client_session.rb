@@ -73,13 +73,13 @@ class ClientSession
 		{ :taps_version => Taps.compatible_version }.merge(extra)
 	end
 
-	def cmd_send
+	def push
 		begin
 			verify_server
-			cmd_send_schema
-			cmd_send_data
-			cmd_send_indexes
-			cmd_send_reset_sequences
+			push_schema
+			push_data
+			push_indexes
+			push_reset_sequences
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
@@ -92,27 +92,27 @@ class ClientSession
 		end
 	end
 
-	def cmd_send_indexes
+	def push_indexes
 		puts "Sending indexes"
 
 		index_data = Taps::Utils.schema_bin(:indexes, database_url)
 		session_resource['push/indexes'].post(index_data, http_headers)
 	end
 
-	def cmd_send_schema
+	def push_schema
 		puts "Sending schema"
 
 		schema_data = Taps::Utils.schema_bin(:dump, database_url)
 		session_resource['push/schema'].post(schema_data, http_headers)
 	end
 
-	def cmd_send_reset_sequences
+	def push_reset_sequences
 		puts "Resetting sequences"
 
 		session_resource['push/reset_sequences'].post('', http_headers)
 	end
 
-	def cmd_send_data
+	def push_data
 		puts "Sending data"
 
 		tables_with_counts, record_count = fetch_tables_info
@@ -177,13 +177,13 @@ class ClientSession
 		[ tables_with_counts, record_count ]
 	end
 
-	def cmd_receive
+	def pull
 		begin
 			verify_server
-			cmd_receive_schema
-			cmd_receive_data
-			cmd_receive_indexes
-			cmd_reset_sequences
+			pull_schema
+			pull_data
+			pull_indexes
+			pull_reset_sequences
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
@@ -196,7 +196,7 @@ class ClientSession
 		end
 	end
 
-	def cmd_receive_data
+	def pull_data
 		puts "Receiving data (new)"
 
 		tables_with_counts, record_count = fetch_remote_tables_info
@@ -245,7 +245,7 @@ class ClientSession
 		[ tables_with_counts, record_count ]
 	end
 
-	def cmd_receive_schema
+	def pull_schema
 		puts "Receiving schema"
 
 		schema_data = session_resource['pull/schema'].get(http_headers).body.to_s
@@ -253,7 +253,7 @@ class ClientSession
 		puts output if output
 	end
 
-	def cmd_receive_indexes
+	def pull_indexes
 		puts "Receiving indexes"
 
 		index_data = session_resource['pull/indexes'].get(http_headers).body.to_s
@@ -262,7 +262,7 @@ class ClientSession
 		puts output if output
 	end
 
-	def cmd_reset_sequences
+	def pull_reset_sequences
 		puts "Resetting sequences"
 
 		output = Taps::Utils.schema_bin(:reset_db_sequences, database_url)
