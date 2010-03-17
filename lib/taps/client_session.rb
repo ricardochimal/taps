@@ -218,7 +218,8 @@ class ClientSession
 					break if stream.complete?
 					progress.inc(size)
 					stream.error = false
-				rescue DataStream::CorruptedData
+				rescue DataStream::CorruptedData => e
+					puts "Corrupted Data Received #{e.message}, retrying..."
 					stream.error = true
 					next
 				end
