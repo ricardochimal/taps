@@ -28,7 +28,12 @@ class Server < Sinatra::Base
 
 	post '/sessions' do
 		key = rand(9999999999).to_s
-		database_url = Taps::Config.database_url || request.body.string
+
+		if ENV['NO_DEFAULT_DATABASE_URL']
+			database_url = request.body.string
+		else
+			database_url = Taps::Config.database_url || request.body.string
+		end
 
 		DbSession.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
 
