@@ -1,6 +1,7 @@
 require 'optparse'
 require 'tempfile'
 require 'taps/config'
+require 'taps/log'
 
 Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || "sqlite://#{Tempfile.new('taps.db').path}"
 
@@ -23,16 +24,19 @@ class Cli
 
 	def pull
 		opts = clientoptparse(:pull)
+		Taps.log.level = Logger::DEBUG if opts[:debug]
 		clientxfer(:pull, opts[:database_url], opts[:remote_url], opts[:chunksize])
 	end
 
 	def push
 		opts = clientoptparse(:push)
+		Taps.log.level = Logger::DEBUG if opts[:debug]
 		clientxfer(:push, opts[:database_url], opts[:remote_url], opts[:chunksize])
 	end
 
 	def server
 		opts = serveroptparse
+		Taps.log.level = Logger::DEBUG if opts[:debug]
 		Taps::Config.database_url = opts[:database_url]
 		Taps::Config.login = opts[:login]
 		Taps::Config.password = opts[:password]

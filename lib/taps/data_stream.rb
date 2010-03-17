@@ -1,5 +1,6 @@
 require 'taps/monkey'
 require 'taps/multipart'
+require 'taps/log'
 require 'json'
 
 module Taps
@@ -18,6 +19,10 @@ class DataStream
 			:total_chunksize => 0,
 		}.merge(state)
 		@complete = false
+	end
+
+	def log
+		Taps.log
 	end
 
 	def error=(val)
@@ -64,7 +69,7 @@ class DataStream
 	def fetch_rows
 		state[:chunksize] = fetch_chunksize
 		ds = table.order(*order_by).limit(state[:chunksize], state[:offset])
-# 		puts ds.sql
+		log.debug "DataStream#fetch_rows SQL -> #{ds.sql}"
 		rows = Taps::Utils.format_data(ds.all, string_columns)
 		update_chunksize_stats
 		rows
@@ -102,7 +107,7 @@ class DataStream
 
 		@complete = rows == { }
 
-# 		puts state.inspect
+		log.debug "DataStream#fetch state -> #{state.inspect}"
 
 		[gzip_data, (@complete ? 0 : rows[:data].size), elapsed_time]
 	end
@@ -148,7 +153,7 @@ class DataStream
 
 	def fetch_from_resource(resource, headers)
 		res = nil
-# 		puts state.inspect
+		log.debug "DataStream#fetch_from_resource state -> #{state.inspect}"
 		state[:chunksize] = Taps::Utils.calculate_chunksize(state[:chunksize]) do |c|
 			state[:chunksize] = c
 			res = resource.post({:state => self.to_json}, headers)
@@ -213,24 +218,6 @@ class DataStreamKeyed < DataStream
 		state[:primary_key].to_sym
 	end
 
-	def load_buffer(chunksize)
-		num = 0
-		loop do
-			limit = (chunksize * 1.5).ceil
-			ds = table.order(*order_by).filter(primary_key > state[:filter]).limit(limit)
-# 			puts ds.sql
-			data = ds.all
-			self.buffer += data
-			num += data.size
-			if data.size > 0
-				# keep a record of the last primary key value in the buffer
-				state[:filter] = self.buffer.last[ primary_key ]
-			end
-
-			break if num >= chunksize or data.size == 0
-		end
-	end
-
 	def buffer_limit
 		if state[:last_fetched] and state[:last_fetched] < state[:filter] and self.buffer.size == 0
 			state[:last_fetched]
@@ -239,12 +226,12 @@ class DataStreamKeyed < DataStream
 		end
 	end
 
-	def load_buffer2(chunksize)
+	def load_buffer(chunksize)
 		num = 0
 		loop do
 			limit = (chunksize * 1.1).ceil - num
 			ds = table.order(*order_by).filter(primary_key > buffer_limit).limit(limit)
-# 			puts ds.sql
+			log.debug "DataStreamKeyed#load_buffer SQL -> #{ds.sql}"
 			data = ds.all
 			self.buffer += data
 			num += data.size
@@ -258,7 +245,7 @@ class DataStreamKeyed < DataStream
 	end
 
 	def fetch_buffered(chunksize)
-		load_buffer2(chunksize) if self.buffer.size < chunksize
+		load_buffer(chunksize) if self.buffer.size < chunksize
 		rows = buffer.slice(0, chunksize)
 		state[:last_fetched] = if rows.size > 0
 			rows.last[ primary_key ]
