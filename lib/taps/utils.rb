@@ -27,7 +27,7 @@ module Utils
 	end
 
 	def base64encode(data)
-		[data].pack("m").first
+		[data].pack("m")
 	end
 
 	def base64decode(data)
