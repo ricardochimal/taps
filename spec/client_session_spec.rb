@@ -26,11 +26,11 @@ describe Taps::ClientSession do
 
 	it "verifies the db version, receive the schema, data, indexes, then reset the sequences" do
 		@client.expects(:verify_server)
-		@client.expects(:cmd_receive_schema)
-		@client.expects(:cmd_receive_data)
-		@client.expects(:cmd_receive_indexes)
-		@client.expects(:cmd_reset_sequences)
-		@client.cmd_receive.should.be.nil
+		@client.expects(:pull_schema)
+		@client.expects(:pull_data)
+		@client.expects(:pull_indexes)
+		@client.expects(:pull_reset_sequences)
+		@client.pull.should.be.nil
 	end
 
 	it "checks the version of the server by seeing if it has access" do
@@ -42,41 +42,13 @@ describe Taps::ClientSession do
 		lambda { @client.verify_server }.should.not.raise
 	end
 
-	it "receives data from a remote taps server" do
-		@client.stubs(:puts)
-		@progressbar = mock('progressbar')
-		ProgressBar.stubs(:new).with('mytable', 2).returns(@progressbar)
-		@progressbar.stubs(:inc)
-		@progressbar.stubs(:finish)
-		@mytable = mock('mytable')
-		@client.expects(:fetch_remote_tables_info).returns([ { :mytable => 2 }, 2 ])
-		@client.stubs(:db).returns(mock('db'))
-		@client.db.stubs(:[]).with(:mytable).returns(@mytable)
-		@client.expects(:fetch_table_rows).with(:mytable, 1000, 0).returns([ 1000, { :header => [:x, :y], :data => [[1, 2], [3, 4]] } ])
-		@client.expects(:fetch_table_rows).with(:mytable, 1000, 2).returns([ 1000, { }])
-		@mytable.expects(:import).with([:x, :y], [[1, 2], [3, 4]])
-
-		lambda { @client.cmd_receive_data }.should.not.raise
-	end
-
 	it "fetches remote tables info from taps server" do
+		@res = mock("rest-client response")
 		@marshal_data = Marshal.dump({ :mytable => 2 })
-		@client.session_resource.stubs(:[]).with('tables').returns(mock('tables'))
-		@client.session_resource['tables'].stubs(:get).with(:taps_version => Taps.compatible_version).returns(@marshal_data)
+		@res.stubs(:body).returns(@marshal_data)
+		@client.session_resource.stubs(:[]).with('pull/tables').returns(mock('tables'))
+		@client.session_resource['pull/tables'].stubs(:get).with(:taps_version => Taps.compatible_version).returns(@res)
 		@client.fetch_remote_tables_info.should == [ { :mytable => 2 }, 2 ]
-	end
-
-	it "fetches table rows given a chunksize and offset from taps server" do
-		@data = { :header => [ :x, :y ], :data => [ [1, 2], [3, 4] ] }
-		@gzip_data = Taps::Utils.gzip(Marshal.dump(@data))
-		Taps::Utils.stubs(:calculate_chunksize).with(1000).yields(1000).returns(1000)
-
-		@response = mock('response')
-		@client.session_resource.stubs(:[]).with('tables/mytable/1000?offset=0').returns(mock('table resource'))
-		@client.session_resource['tables/mytable/1000?offset=0'].expects(:get).with(:taps_version => Taps.compatible_version).returns(@response)
-		@response.stubs(:to_s).returns(@gzip_data)
-		@response.stubs(:headers).returns({ :taps_checksum => Taps::Utils.checksum(@gzip_data) })
-		@client.fetch_table_rows('mytable', 1000, 0).should == [ 1000, { :header => [:x, :y], :data => [[1, 2], [3, 4]] } ]
 	end
 
 	it "hides the password in urls" do

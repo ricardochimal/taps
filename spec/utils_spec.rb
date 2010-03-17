@@ -3,7 +3,7 @@ require 'taps/utils'
 
 describe Taps::Utils do
 	it "gunzips a string" do
-		@hello_world = "\037\213\b\000R\261\207I\000\003\313H\315\311\311W(\317/\312I\001\000\205\021J\r\v\000\000\000"
+		@hello_world = "H4sIAG5MoUsAA8tIzcnJVyjPL8pJAQCFEUoNCwAAAA==\n"
 		Taps::Utils.gunzip(@hello_world).should == "hello world"
 	end
 
