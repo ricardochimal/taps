@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{taps}
-  s.version = "0.3.0.pre2"
+  s.version = "0.3.0.pre3"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
@@ -15,33 +15,33 @@ Gem::Specification.new do |s|
   s.executables = ["taps", "schema"]
   s.extra_rdoc_files = [
     "LICENSE",
-    "README.rdoc"
+     "README.rdoc"
   ]
   s.files = [
     "LICENSE",
-    "README.rdoc",
-    "Rakefile",
-    "VERSION.yml",
-    "bin/schema",
-    "bin/schema.cmd",
-    "bin/taps",
-    "lib/taps/cli.rb",
-    "lib/taps/client_session.rb",
-    "lib/taps/config.rb",
-    "lib/taps/data_stream.rb",
-    "lib/taps/db_session.rb",
-    "lib/taps/log.rb",
-    "lib/taps/monkey.rb",
-    "lib/taps/multipart.rb",
-    "lib/taps/progress_bar.rb",
-    "lib/taps/schema.rb",
-    "lib/taps/server.rb",
-    "lib/taps/utils.rb",
-    "spec/base.rb",
-    "spec/client_session_spec.rb",
-    "spec/data_stream_spec.rb",
-    "spec/server_spec.rb",
-    "spec/utils_spec.rb"
+     "README.rdoc",
+     "Rakefile",
+     "VERSION.yml",
+     "bin/schema",
+     "bin/schema.cmd",
+     "bin/taps",
+     "lib/taps/cli.rb",
+     "lib/taps/client_session.rb",
+     "lib/taps/config.rb",
+     "lib/taps/data_stream.rb",
+     "lib/taps/db_session.rb",
+     "lib/taps/log.rb",
+     "lib/taps/monkey.rb",
+     "lib/taps/multipart.rb",
+     "lib/taps/progress_bar.rb",
+     "lib/taps/schema.rb",
+     "lib/taps/server.rb",
+     "lib/taps/utils.rb",
+     "spec/base.rb",
+     "spec/client_session_spec.rb",
+     "spec/data_stream_spec.rb",
+     "spec/server_spec.rb",
+     "spec/utils_spec.rb"
   ]
   s.homepage = %q{http://github.com/ricardochimal/taps}
   s.rdoc_options = ["--charset=UTF-8"]
@@ -51,10 +51,10 @@ Gem::Specification.new do |s|
   s.summary = %q{simple database import/export app}
   s.test_files = [
     "spec/utils_spec.rb",
-    "spec/data_stream_spec.rb",
-    "spec/client_session_spec.rb",
-    "spec/base.rb",
-    "spec/server_spec.rb"
+     "spec/data_stream_spec.rb",
+     "spec/client_session_spec.rb",
+     "spec/base.rb",
+     "spec/server_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
