@@ -7,6 +7,8 @@ require 'taps/config'
 require 'taps/utils'
 require 'taps/data_stream'
 
+require 'taps/operation'
+
 # disable warnings, rest client makes a lot of noise right now
 $VERBOSE = nil
 
@@ -178,95 +180,8 @@ class ClientSession
 	end
 
 	def pull
-		begin
-			verify_server
-			pull_schema
-			pull_data
-			pull_indexes
-			pull_reset_sequences
-		rescue RestClient::Exception => e
-			if e.respond_to?(:response)
-				puts "!!! Caught Server Exception"
-				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response}"
-				exit(1)
-			else
-				raise
-			end
-		end
-	end
-
-	def pull_data
-		puts "Receiving data (new)"
-
-		tables_with_counts, record_count = fetch_remote_tables_info
-
-		puts "#{tables_with_counts.size} tables, #{format_number(record_count)} records"
-
-		tables_with_counts.each do |table_name, count|
-			table = db[table_name.to_sym]
-
-			progress = ProgressBar.new(table_name.to_s, count)
-			stream = Taps::DataStream.factory(db, {
-				:chunksize => default_chunksize,
-				:table_name => table_name
-			})
-
-			loop do
-				begin
-					size = stream.fetch_remote(session_resource['pull/table'], http_headers)
-					break if stream.complete?
-					progress.inc(size)
-					stream.error = false
-				rescue DataStream::CorruptedData => e
-					puts "Corrupted Data Received #{e.message}, retrying..."
-					stream.error = true
-					next
-				end
-			end
-
-			progress.finish
-		end
-	end
-
-	def fetch_remote_tables_info
-		retries = 0
-		max_retries = 1
-		begin
-			tables_with_counts = Marshal.load(session_resource['pull/tables'].get(http_headers).body.to_s)
-			record_count = tables_with_counts.values.inject(0) { |a,c| a += c }
-		rescue RestClient::Exception
-			retries += 1
-			retry if retries <= max_retries
-			puts "Unable to fetch tables information from #{remote_url}. Please check the server log."
-			exit(1)
-		end
-
-		[ tables_with_counts, record_count ]
-	end
-
-	def pull_schema
-		puts "Receiving schema"
-
-		schema_data = session_resource['pull/schema'].get(http_headers).body.to_s
-		output = Taps::Utils.load_schema(database_url, schema_data)
-		puts output if output
-	end
-
-	def pull_indexes
-		puts "Receiving indexes"
-
-		index_data = session_resource['pull/indexes'].get(http_headers).body.to_s
-
-		output = Taps::Utils.load_indexes(database_url, index_data)
-		puts output if output
-	end
-
-	def pull_reset_sequences
-		puts "Resetting sequences"
-
-		output = Taps::Utils.schema_bin(:reset_db_sequences, database_url)
-		puts output if output
+		op = Taps::Pull.new(database_url, remote_url, :default_chunksize => default_chunksize)
+		op.run
 	end
 
 	def format_number(num)
