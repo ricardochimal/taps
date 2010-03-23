@@ -99,6 +99,8 @@ class DataStream
 	end
 
 	def fetch
+		log.debug "DataStream#fetch state -> #{state.inspect}"
+
 		t1 = Time.now
 		rows = fetch_rows
 		gzip_data = compress_rows(rows)
@@ -106,8 +108,6 @@ class DataStream
 		elapsed_time = t2 - t1
 
 		@complete = rows == { }
-
-		log.debug "DataStream#fetch state -> #{state.inspect}"
 
 		[gzip_data, (@complete ? 0 : rows[:data].size), elapsed_time]
 	end

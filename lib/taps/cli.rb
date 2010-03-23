@@ -1,5 +1,7 @@
 require 'optparse'
 require 'tempfile'
+require 'json'
+require 'taps/monkey'
 require 'taps/config'
 require 'taps/log'
 
@@ -25,7 +27,11 @@ class Cli
 	def pull
 		opts = clientoptparse(:pull)
 		Taps.log.level = Logger::DEBUG if opts[:debug]
-		clientxfer(:pull, opts[:database_url], opts[:remote_url], opts[:chunksize])
+		if opts[:resume_filename]
+			clientresumexfer(:pull, opts)
+		else
+			clientxfer(:pull, opts[:database_url], opts[:remote_url], opts[:chunksize])
+		end
 	end
 
 	def push
@@ -102,7 +108,7 @@ EOHELP
 	end
 
 	def clientoptparse(cmd)
-		opts={:chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false}
+		opts={:chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil}
 		OptionParser.new do |o|
 			o.banner = "Usage: #{File.basename($0)} #{cmd} [OPTIONS] <local_database_url> <remote_url>"
 
@@ -113,6 +119,7 @@ EOHELP
 				o.define_head "Push a database to a taps server"
 			end
 
+			o.on("-r", "--resume=file", "Resume a Taps Session from a stored file") { |v| opts[:resume_filename] = v }
 			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
 			o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
 			o.parse!(argv)
@@ -148,5 +155,20 @@ EOHELP
 			session.send(method)
 		end
 	end
+
+	def clientresumexfer(method, opts)
+		session = JSON.parse(File.read(opts[:resume_filename]))
+		session.symbolize_recursively!
+
+		Taps::Config.chunksize = opts[:chunksize]
+		Taps::Config.database_url = opts[:database_url]
+		Taps::Config.remote_url = opts[:remote_url]
+		Taps::Config.verify_database_url
+
+		require 'taps/operation'
+
+		Taps::Pull.resume(opts[:remote_url], session.merge(:default_chunksize => opts[:chunksize]))
+	end
+
 end
 end

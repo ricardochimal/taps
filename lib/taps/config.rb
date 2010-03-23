@@ -17,6 +17,14 @@ module Taps
 		"#{version_yml[:major]}.#{version_yml[:minor]}"
 	end
 
+	def self.exiting=(val)
+		@@exiting = val
+	end
+
+	def exiting?
+		(@@exiting ||= false) == true
+	end
+
 	class Config
 		class << self
 			attr_accessor :taps_database_url

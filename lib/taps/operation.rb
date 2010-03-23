@@ -14,11 +14,18 @@ module Taps
 
 class Operation
 	attr_reader :database_url, :remote_url, :opts
+	attr_reader :session_uri
 
 	def initialize(database_url, remote_url, opts={})
 		@database_url = database_url
 		@remote_url = remote_url
 		@opts = opts
+		@exiting = false
+		@session_uri = opts[:session_uri]
+	end
+
+	def exiting?
+		!!@exiting
 	end
 
 	def default_chunksize
@@ -33,6 +40,10 @@ class Operation
 		opts[:stream_state] ||= {}
 	end
 
+	def stream_state=(val)
+		opts[:stream_state] = val
+	end
+
 	def db
 		@db ||= Sequel.connect(database_url)
 	end
@@ -42,16 +53,15 @@ class Operation
 	end
 
 	def session_resource
-		@session_resource ||= open_session
-	end
-
-	def open_session
-		uri = server['sessions'].post('', http_headers)
-		server[uri]
+		@session_resource ||= begin
+			@session_uri ||= server['sessions'].post('', http_headers).to_s
+			server[@session_uri]
+		end
 	end
 
 	def set_session(uri)
-		@session_resource = server[uri]
+		session_uri = uri
+		@session_resource = server[session_uri]
 	end
 
 	def close_session
@@ -101,10 +111,63 @@ class Operation
 end
 
 class Pull < Operation
+	def self.resume(remote_url, session)
+		Pull.new(session[:database_url], remote_url, session).resume
+	end
+
+	def resume
+		begin
+			verify_server
+
+			trap("INT") { @exiting = true }
+
+			pull_partial_data
+
+			pull_data
+			pull_indexes
+			pull_reset_sequences
+		rescue RestClient::Exception => e
+			if e.respond_to?(:response)
+				puts "!!! Caught Server Exception"
+				puts "HTTP CODE: #{e.http_code}"
+				puts "#{e.response}"
+				puts "#{e.backtrace}"
+				exit(1)
+			else
+				raise
+			end
+		end
+	end
+
+	def store_session
+		file = "pull_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
+		puts "Saving session to #{file}.."
+		File.open(file, 'w') do |f|
+			f.write(to_hash.to_json)
+		end
+	end
+
+	def to_hash
+		{
+			:klass => self.class.to_s,
+			:database_url => database_url,
+			:session_uri => session_uri,
+			:stream_state => stream_state,
+			:remote_tables_info => remote_tables_info,
+			:completed_tables => completed_tables,
+		}
+	end
+
 	def run
 		begin
 			verify_server
 			pull_schema
+
+			trap("INT") {
+				puts "\nCompleting current action..."
+				@exiting = true
+			}
+
 			pull_data
 			pull_indexes
 			pull_reset_sequences
@@ -143,14 +206,29 @@ class Pull < Operation
 		end
 	end
 
+	def pull_partial_data
+		table_name = stream_state[:table_name]
+		record_count = tables[table_name.to_s]
+		puts "Resuming #{table_name}, #{format_number(record_count)} records"
+
+		progress = ProgressBar.new(table_name.to_s, record_count)
+		stream = Taps::DataStream.factory(db, stream_state)
+		pull_data_from_table(stream, progress)
+	end
+
 	def pull_data_from_table(stream, progress)
 		loop do
 			begin
+				if exiting?
+					store_session
+					exit 0
+				end
+
 				size = stream.fetch_remote(session_resource['pull/table'], http_headers)
 				break if stream.complete?
-				progress.inc(size)
+				progress.inc(size) unless exiting?
 				stream.error = false
-				stream_state = stream.to_json
+				self.stream_state = stream.to_hash
 			rescue DataStream::CorruptedData => e
 				puts "Corrupted Data Received #{e.message}, retrying..."
 				stream.error = true
@@ -159,21 +237,17 @@ class Pull < Operation
 		end
 
 		progress.finish
-
-		stream_state = {}
-		completed_tables << stream.table_name.to_sym
+		completed_tables << stream.table_name.to_s
+		self.stream_state = {}
 	end
 
 	def tables
-		@tables ||= begin
-			h = {}
-			remote_tables_info.each do |table_name, count|
-				next if completed_tables.include?(table_name.to_s)
-				h[table_name.to_s] = count
-
-			end
-			h
+		h = {}
+		remote_tables_info.each do |table_name, count|
+			next if completed_tables.include?(table_name.to_s)
+			h[table_name.to_s] = count
 		end
+		h
 	end
 
 	def record_count
