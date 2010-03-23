@@ -31,8 +31,9 @@ module Taps
 			attr_accessor :login, :password, :database_url, :remote_url
 			attr_accessor :chunksize
 
-			def verify_database_url
-				db = Sequel.connect(self.database_url)
+			def verify_database_url(db_url=nil)
+				db_url ||= self.database_url
+				db = Sequel.connect(db_url)
 				db.tables
 				db.disconnect
 			rescue Object => e

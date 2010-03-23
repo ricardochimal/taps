@@ -56,6 +56,7 @@ class Server < Sinatra::Base
 			end
 		end
 
+		# TODO: return the stream's state with the size
 		size.to_s
 	end
 

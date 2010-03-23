@@ -24,8 +24,42 @@ class Operation
 		@session_uri = opts[:session_uri]
 	end
 
+	def file_prefix
+		"op"
+	end
+
+	def store_session
+		file = "#{file_prefix}_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
+		puts "Saving session to #{file}.."
+		File.open(file, 'w') do |f|
+			f.write(to_hash.to_json)
+		end
+	end
+
+	def to_hash
+		{
+			:klass => self.class.to_s,
+			:database_url => database_url,
+			:session_uri => session_uri,
+			:stream_state => stream_state,
+			:completed_tables => completed_tables,
+		}
+	end
+
 	def exiting?
 		!!@exiting
+	end
+
+	def setup_signal_trap
+		trap("INT") {
+			puts "\nCompleting current action..."
+			@exiting = true
+		}
+
+		trap("TERM") {
+			puts "\nCompleting current action..."
+			@exiting = true
+		}
 	end
 
 	def default_chunksize
@@ -108,24 +142,35 @@ class Operation
 		end
 	end
 
+	def self.factory(type, database_url, remote_url, opts)
+		klass = case type
+			when :pull then Taps::Pull
+			when :push then Taps::Push
+			else raise "Unknown Operation Type -> #{type}"
+		end
+
+		klass.new(database_url, remote_url, opts)
+	end
+
+	def self.resume(remote_url, session)
+		klass = session[:klass]
+		eval(klass).new(session[:database_url], remote_url, session).resume
+	end
 end
 
 class Pull < Operation
-	def self.resume(remote_url, session)
-		Pull.new(session[:database_url], remote_url, session).resume
-	end
-
 	def resume
 		begin
 			verify_server
 
-			trap("INT") { @exiting = true }
+			setup_signal_trap
 
 			pull_partial_data
 
 			pull_data
 			pull_indexes
 			pull_reset_sequences
+			close_session
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
@@ -139,23 +184,12 @@ class Pull < Operation
 		end
 	end
 
-	def store_session
-		file = "pull_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
-		puts "Saving session to #{file}.."
-		File.open(file, 'w') do |f|
-			f.write(to_hash.to_json)
-		end
+	def file_prefix
+		"pull"
 	end
 
 	def to_hash
-		{
-			:klass => self.class.to_s,
-			:database_url => database_url,
-			:session_uri => session_uri,
-			:stream_state => stream_state,
-			:remote_tables_info => remote_tables_info,
-			:completed_tables => completed_tables,
-		}
+		super.merge(:remote_tables_info => remote_tables_info)
 	end
 
 	def run
@@ -163,14 +197,12 @@ class Pull < Operation
 			verify_server
 			pull_schema
 
-			trap("INT") {
-				puts "\nCompleting current action..."
-				@exiting = true
-			}
+			setup_signal_trap
 
 			pull_data
 			pull_indexes
 			pull_reset_sequences
+			close_session
 		rescue RestClient::Exception => e
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
@@ -296,6 +328,182 @@ class Pull < Operation
 		output = Taps::Utils.schema_bin(:reset_db_sequences, database_url)
 		puts output if output
 	end
+end
+
+class Push < Operation
+	def resume
+		begin
+			verify_server
+
+			setup_signal_trap
+
+			push_partial_data
+
+			push_data
+			push_indexes
+			push_reset_sequences
+
+		rescue RestClient::Exception => e
+			if e.respond_to?(:response)
+				puts "!!! Caught Server Exception"
+				puts "HTTP CODE: #{e.http_code}"
+				puts "#{e.response.body}"
+				exit(1)
+			else
+				raise
+			end
+		end
+
+	end
+
+	def file_prefix
+		"push"
+	end
+
+	def to_hash
+		super.merge(:local_tables_info => local_tables_info)
+	end
+
+	def run
+		begin
+			verify_server
+			setup_signal_trap
+			push_schema
+			push_data
+			push_indexes
+			push_reset_sequences
+			close_session
+		rescue RestClient::Exception => e
+			if e.respond_to?(:response)
+				puts "!!! Caught Server Exception"
+				puts "HTTP CODE: #{e.http_code}"
+				puts "#{e.response.body}"
+				exit(1)
+			else
+				raise
+			end
+		end
+	end
+
+	def push_indexes
+		puts "Sending indexes"
+
+		index_data = Taps::Utils.schema_bin(:indexes, database_url)
+		session_resource['push/indexes'].post(index_data, http_headers)
+	end
+
+	def push_schema
+		puts "Sending schema"
+
+		schema_data = Taps::Utils.schema_bin(:dump, database_url)
+		session_resource['push/schema'].post(schema_data, http_headers)
+	end
+
+	def push_reset_sequences
+		puts "Resetting sequences"
+
+		session_resource['push/reset_sequences'].post('', http_headers)
+	end
+
+	def push_partial_data
+		table_name = stream_state[:table_name]
+		record_count = tables[table_name.to_s]
+		puts "Resuming #{table_name}, #{format_number(record_count)} records"
+		progress = ProgressBar.new(table_name.to_s, record_count)
+		stream = Taps::DataStream.factory(db, stream_state)
+		push_data_from_table(stream, progress)
+	end
+
+	def push_data
+		puts "Sending data"
+
+		puts "#{tables.size} tables, #{format_number(record_count)} records"
+
+		tables.each do |table_name, count|
+			stream = Taps::DataStream.factory(db,
+				:table_name => table_name,
+				:chunksize => default_chunksize)
+			progress = ProgressBar.new(table_name.to_s, count)
+			push_data_from_table(stream, progress)
+		end
+	end
+
+	def push_data_from_table(stream, progress)
+		loop do
+			if exiting?
+				store_session
+				exit 0
+			end
+
+			row_size = 0
+			chunksize = stream.state[:chunksize]
+			chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
+				stream.state[:chunksize] = c
+				gzip_data, row_size, elapsed_time = stream.fetch
+				break if stream.complete?
+
+				data = {
+					:state => stream.to_hash,
+					:checksum => Taps::Utils.checksum(gzip_data).to_s
+				}
+
+				begin
+					content, content_type = Taps::Multipart.create do |r|
+						r.attach :name => :gzip_data,
+							:payload => gzip_data,
+							:content_type => 'application/octet-stream'
+						r.attach :name => :json,
+							:payload => data.to_json,
+							:content_type => 'application/json'
+					end
+					session_resource['push/table'].post(content, http_headers(:content_type => content_type))
+					self.stream_state = stream.to_hash
+				rescue RestClient::RequestFailed => e
+					# retry the same data, it got corrupted somehow.
+					if e.http_code == 412
+						next
+					end
+					raise
+				end
+				elapsed_time
+			end
+
+			progress.inc(row_size)
+
+			stream.increment(row_size)
+			break if stream.complete?
+		end
+
+		progress.finish
+		completed_tables << stream.table_name.to_s
+		self.stream_state = {}
+	end
+
+	def local_tables_info
+		opts[:local_tables_info] ||= fetch_local_tables_info
+	end
+
+	def tables
+		h = {}
+		local_tables_info.each do |table_name, count|
+			next if completed_tables.include?(table_name.to_s)
+			h[table_name.to_s] = count
+		end
+		h
+	end
+
+	def record_count
+		@record_count ||= local_tables_info.values.inject(0) { |a,c| a += c }
+	end
+
+	def fetch_local_tables_info
+		tables_with_counts = {}
+		db.tables.each do |table|
+			tables_with_counts[table] = db[table].count
+		end
+		tables_with_counts
+	end
+
 end
 
 end

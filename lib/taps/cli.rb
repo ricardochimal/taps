@@ -37,7 +37,11 @@ class Cli
 	def push
 		opts = clientoptparse(:push)
 		Taps.log.level = Logger::DEBUG if opts[:debug]
-		clientxfer(:push, opts[:database_url], opts[:remote_url], opts[:chunksize])
+		if opts[:resume_filename]
+			clientresumexfer(:push, opts)
+		else
+			clientxfer(:push, opts[:database_url], opts[:remote_url], opts[:chunksize])
+		end
 	end
 
 	def server
@@ -143,31 +147,23 @@ EOHELP
 	end
 
 	def clientxfer(method, database_url, remote_url, chunksize)
-		Taps::Config.chunksize = chunksize
-		Taps::Config.database_url = database_url
-		Taps::Config.remote_url = remote_url
+		Taps::Config.verify_database_url(database_url)
 
-		Taps::Config.verify_database_url
+		require 'taps/operation'
 
-		require 'taps/client_session'
-
-		Taps::ClientSession.quickstart do |session|
-			session.send(method)
-		end
+		taps = Taps::Operation.factory(method, database_url, remote_url, :default_chunksize => chunksize)
+		taps.run
 	end
 
 	def clientresumexfer(method, opts)
 		session = JSON.parse(File.read(opts[:resume_filename]))
 		session.symbolize_recursively!
 
-		Taps::Config.chunksize = opts[:chunksize]
-		Taps::Config.database_url = opts[:database_url]
-		Taps::Config.remote_url = opts[:remote_url]
-		Taps::Config.verify_database_url
+		Taps::Config.verify_database_url(opts[:database_url])
 
 		require 'taps/operation'
 
-		Taps::Pull.resume(opts[:remote_url], session.merge(:default_chunksize => opts[:chunksize]))
+		Taps::Operation.resume(opts[:remote_url], session.merge(:default_chunksize => opts[:chunksize]))
 	end
 
 end
