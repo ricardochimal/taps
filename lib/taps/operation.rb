@@ -481,6 +481,7 @@ class Push < Operation
 				end
 				elapsed_time
 			end
+			stream.state[:chunksize] = chunksize
 
 			progress.inc(row_size)
 
