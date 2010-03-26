@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{taps}
-  s.version = "0.3.0.pre5"
+  s.version = "0.3.0.pre6"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
-  s.date = %q{2010-03-23}
+  s.date = %q{2010-03-26}
   s.description = %q{A simple database agnostic import/export app to transfer data to/from a remote database.}
   s.email = %q{ricardo@heroku.com}
   s.executables = ["taps", "schema"]
@@ -49,10 +49,10 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.6}
   s.summary = %q{simple database import/export app}
   s.test_files = [
-    "spec/base.rb",
+    "spec/utils_spec.rb",
      "spec/data_stream_spec.rb",
-     "spec/server_spec.rb",
-     "spec/utils_spec.rb"
+     "spec/base.rb",
+     "spec/server_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
