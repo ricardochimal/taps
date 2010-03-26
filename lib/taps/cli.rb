@@ -155,19 +155,27 @@ EOHELP
 
 		require 'taps/operation'
 
-		taps = Taps::Operation.factory(method, database_url, remote_url, opts)
-		taps.run
+		Taps::Operation.factory(method, database_url, remote_url, opts).run
 	end
 
 	def clientresumexfer(method, opts)
-		session = JSON.parse(File.read(opts[:resume_filename]))
+		session = JSON.parse(File.read(opts.delete(:resume_filename)))
 		session.symbolize_recursively!
 
-		Taps::Config.verify_database_url(opts[:database_url])
+		database_url = opts.delete(:database_url)
+		remote_url = opts.delete(:remote_url) || session.delete(:remote_url)
+
+		Taps::Config.verify_database_url(database_url)
 
 		require 'taps/operation'
 
-		Taps::Operation.resume(opts[:remote_url], session.merge(:default_chunksize => opts[:default_chunksize]))
+		newsession = session.merge({
+			:default_chunksize => opts[:default_chunksize],
+			:disable_compression => opts[:disable_compression],
+			:resume => true,
+		})
+
+		Taps::Operation.factory(method, database_url, remote_url, newsession).run
 	end
 
 end

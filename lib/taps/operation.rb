@@ -44,6 +44,7 @@ class Operation
 		{
 			:klass => self.class.to_s,
 			:database_url => database_url,
+			:remote_url => remote_url,
 			:session_uri => session_uri,
 			:stream_state => stream_state,
 			:completed_tables => completed_tables,
@@ -64,6 +65,10 @@ class Operation
 			puts "\nCompleting current action..."
 			@exiting = true
 		}
+	end
+
+	def resuming?
+		opts[:resume] == true
 	end
 
 	def default_chunksize
@@ -157,47 +162,19 @@ class Operation
 	end
 
 	def self.factory(type, database_url, remote_url, opts)
+		type = :resume if opts[:resume]
 		klass = case type
 			when :pull then Taps::Pull
 			when :push then Taps::Push
+			when :resume then eval(opts[:klass])
 			else raise "Unknown Operation Type -> #{type}"
 		end
 
 		klass.new(database_url, remote_url, opts)
 	end
-
-	def self.resume(remote_url, session)
-		klass = session[:klass]
-		eval(klass).new(session[:database_url], remote_url, session).resume
-	end
 end
 
 class Pull < Operation
-	def resume
-		begin
-			verify_server
-
-			setup_signal_trap
-
-			pull_partial_data
-
-			pull_data
-			pull_indexes
-			pull_reset_sequences
-			close_session
-		rescue RestClient::Exception => e
-			if e.respond_to?(:response)
-				puts "!!! Caught Server Exception"
-				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response.to_s}"
-				puts "#{e.backtrace}"
-				exit(1)
-			else
-				raise
-			end
-		end
-	end
-
 	def file_prefix
 		"pull"
 	end
@@ -209,9 +186,12 @@ class Pull < Operation
 	def run
 		begin
 			verify_server
-			pull_schema
+
+			pull_schema unless resuming?
 
 			setup_signal_trap
+
+			pull_partial_data if resuming?
 
 			pull_data
 			pull_indexes
@@ -345,31 +325,6 @@ class Pull < Operation
 end
 
 class Push < Operation
-	def resume
-		begin
-			verify_server
-
-			setup_signal_trap
-
-			push_partial_data
-
-			push_data
-			push_indexes
-			push_reset_sequences
-
-		rescue RestClient::Exception => e
-			if e.respond_to?(:response)
-				puts "!!! Caught Server Exception"
-				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response.to_s}"
-				exit(1)
-			else
-				raise
-			end
-		end
-
-	end
-
 	def file_prefix
 		"push"
 	end
@@ -381,8 +336,12 @@ class Push < Operation
 	def run
 		begin
 			verify_server
+			push_schema unless resuming?
+
 			setup_signal_trap
-			push_schema
+
+			push_partial_data if resuming?
+
 			push_data
 			push_indexes
 			push_reset_sequences
