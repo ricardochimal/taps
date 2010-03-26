@@ -142,7 +142,7 @@ class Operation
 		rescue RestClient::RequestFailed => e
 			if e.http_code == 417
 				puts "#{safe_remote_url} is running a different minor version of taps."
-				puts "#{e.response.body}"
+				puts "#{e.response.to_s}"
 				exit(1)
 			else
 				raise
@@ -189,7 +189,7 @@ class Pull < Operation
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
 				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response}"
+				puts "#{e.response.to_s}"
 				puts "#{e.backtrace}"
 				exit(1)
 			else
@@ -221,7 +221,7 @@ class Pull < Operation
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
 				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response}"
+				puts "#{e.response.to_s}"
 				exit(1)
 			else
 				raise
@@ -232,7 +232,7 @@ class Pull < Operation
 	def pull_schema
 		puts "Receiving schema"
 
-		schema_data = session_resource['pull/schema'].get(http_headers).body.to_s
+		schema_data = session_resource['pull/schema'].get(http_headers).to_s
 		output = Taps::Utils.load_schema(database_url, schema_data)
 		puts output if output
 	end
@@ -308,7 +308,7 @@ class Pull < Operation
 		retries = 0
 		max_retries = 1
 		begin
-			tables_with_counts = Marshal.load(session_resource['pull/tables'].get(http_headers).body.to_s)
+			tables_with_counts = Marshal.load(session_resource['pull/tables'].get(http_headers).to_s)
 		rescue RestClient::Exception
 			retries += 1
 			retry if retries <= max_retries
@@ -322,7 +322,7 @@ class Pull < Operation
 	def pull_schema
 		puts "Receiving schema"
 
-		schema_data = session_resource['pull/schema'].get(http_headers).body.to_s
+		schema_data = session_resource['pull/schema'].get(http_headers).to_s
 		output = Taps::Utils.load_schema(database_url, schema_data)
 		puts output if output
 	end
@@ -330,7 +330,7 @@ class Pull < Operation
 	def pull_indexes
 		puts "Receiving indexes"
 
-		index_data = session_resource['pull/indexes'].get(http_headers).body.to_s
+		index_data = session_resource['pull/indexes'].get(http_headers).to_s
 
 		output = Taps::Utils.load_indexes(database_url, index_data)
 		puts output if output
@@ -361,7 +361,7 @@ class Push < Operation
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
 				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response.body}"
+				puts "#{e.response.to_s}"
 				exit(1)
 			else
 				raise
@@ -391,7 +391,7 @@ class Push < Operation
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
 				puts "HTTP CODE: #{e.http_code}"
-				puts "#{e.response.body}"
+				puts "#{e.response.to_s}"
 				exit(1)
 			else
 				raise
