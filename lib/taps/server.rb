@@ -10,6 +10,8 @@ class Server < Sinatra::Base
 		login == Taps::Config.login && password == Taps::Config.password
 	end
 
+	use Rack::Deflater unless ENV['NO_DEFLATE']
+
 	error do
 		e = request.env['sinatra.error']
 		"Taps Server Error: #{e}\n#{e.backtrace}"
@@ -120,22 +122,22 @@ class Server < Sinatra::Base
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		gzip_data = nil
+		encoded_data = nil
 		stream = nil
 
 		session.conn do |db|
 			state = JSON.parse(params[:state]).symbolize_keys
 # 			puts state.inspect
 			stream = Taps::DataStream.factory(db, state)
-			gzip_data = stream.fetch.first
+			encoded_data = stream.fetch.first
 		end
 
-		checksum = Taps::Utils.checksum(gzip_data).to_s
+		checksum = Taps::Utils.checksum(encoded_data).to_s
 		json = { :checksum => checksum, :state => stream.to_hash }.to_json
 
 		content, content_type_value = Taps::Multipart.create do |r|
-			r.attach :name => :gzip_data,
-				:payload => gzip_data,
+			r.attach :name => :encoded_data,
+				:payload => encoded_data,
 				:content_type => 'application/octet-stream'
 			r.attach :name => :json,
 				:payload => json,

@@ -28,6 +28,10 @@ class Operation
 		"op"
 	end
 
+	def log
+		Taps.log
+	end
+
 	def store_session
 		file = "#{file_prefix}_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
 		puts "Saving session to #{file}.."
@@ -78,6 +82,10 @@ class Operation
 		opts[:stream_state] = val
 	end
 
+	def compression_disabled?
+		!!opts[:disable_compression]
+	end
+
 	def db
 		@db ||= Sequel.connect(database_url)
 	end
@@ -115,7 +123,13 @@ class Operation
 	end
 
 	def http_headers(extra = {})
-		{ :taps_version => Taps.compatible_version }.merge(extra)
+		base = { :taps_version => Taps.compatible_version }
+		if compression_disabled?
+			base[:accept_encoding] = ""
+		else
+			base[:accept_encoding] = "gzip, deflate"
+		end
+		base.merge(extra)
 	end
 
 	def format_number(num)
@@ -439,18 +453,18 @@ class Push < Operation
 			chunksize = stream.state[:chunksize]
 			chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
 				stream.state[:chunksize] = c
-				gzip_data, row_size, elapsed_time = stream.fetch
+				encoded_data, row_size, elapsed_time = stream.fetch
 				break if stream.complete?
 
 				data = {
 					:state => stream.to_hash,
-					:checksum => Taps::Utils.checksum(gzip_data).to_s
+					:checksum => Taps::Utils.checksum(encoded_data).to_s
 				}
 
 				begin
 					content, content_type = Taps::Multipart.create do |r|
-						r.attach :name => :gzip_data,
-							:payload => gzip_data,
+						r.attach :name => :encoded_data,
+							:payload => encoded_data,
 							:content_type => 'application/octet-stream'
 						r.attach :name => :json,
 							:payload => data.to_json,

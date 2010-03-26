@@ -2,15 +2,6 @@ require File.dirname(__FILE__) + '/base'
 require 'taps/utils'
 
 describe Taps::Utils do
-	it "gunzips a string" do
-		@hello_world = "H4sIAG5MoUsAA8tIzcnJVyjPL8pJAQCFEUoNCwAAAA==\n"
-		Taps::Utils.gunzip(@hello_world).should == "hello world"
-	end
-
-	it "gzips and gunzips a string and returns the same string" do
-		Taps::Utils.gunzip(Taps::Utils.gzip("hello world")).should == "hello world"
-	end
-
 	it "generates a checksum using crc32" do
 		Taps::Utils.checksum("hello world").should == Zlib.crc32("hello world")
 	end

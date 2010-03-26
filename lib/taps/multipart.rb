@@ -57,10 +57,11 @@ class Multipart
 
 	# response is a rest-client response
 	def self.parse(response)
+		content = response.to_s
 		env = {
 			'CONTENT_TYPE' => response.headers[:content_type],
-			'CONTENT_LENGTH' => response.headers[:content_length],
-			'rack.input' => StringIO.new(response.body)
+			'CONTENT_LENGTH' => content.size,
+			'rack.input' => StringIO.new(content)
 		}
 
 		params = Rack::Utils::Multipart.parse_multipart(env)

@@ -30,7 +30,7 @@ class Cli
 		if opts[:resume_filename]
 			clientresumexfer(:pull, opts)
 		else
-			clientxfer(:pull, opts[:database_url], opts[:remote_url], opts[:chunksize])
+			clientxfer(:pull, opts)
 		end
 	end
 
@@ -40,7 +40,7 @@ class Cli
 		if opts[:resume_filename]
 			clientresumexfer(:push, opts)
 		else
-			clientxfer(:push, opts[:database_url], opts[:remote_url], opts[:chunksize])
+			clientxfer(:push, opts)
 		end
 	end
 
@@ -112,7 +112,7 @@ EOHELP
 	end
 
 	def clientoptparse(cmd)
-		opts={:chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil}
+		opts={:default_chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil, :disable_compresion => false}
 		OptionParser.new do |o|
 			o.banner = "Usage: #{File.basename($0)} #{cmd} [OPTIONS] <local_database_url> <remote_url>"
 
@@ -124,7 +124,8 @@ EOHELP
 			end
 
 			o.on("-r", "--resume=file", "Resume a Taps Session from a stored file") { |v| opts[:resume_filename] = v }
-			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
+			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
+			o.on("-g", "--disable-compression", "Disable Compression") { |v| opts[:disable_compression] = true }
 			o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
 			o.parse!(argv)
 
@@ -146,12 +147,15 @@ EOHELP
 		opts
 	end
 
-	def clientxfer(method, database_url, remote_url, chunksize)
+	def clientxfer(method, opts)
+		database_url = opts.delete(:database_url)
+		remote_url = opts.delete(:remote_url)
+
 		Taps::Config.verify_database_url(database_url)
 
 		require 'taps/operation'
 
-		taps = Taps::Operation.factory(method, database_url, remote_url, :default_chunksize => chunksize)
+		taps = Taps::Operation.factory(method, database_url, remote_url, opts)
 		taps.run
 	end
 
@@ -163,7 +167,7 @@ EOHELP
 
 		require 'taps/operation'
 
-		Taps::Operation.resume(opts[:remote_url], session.merge(:default_chunksize => opts[:chunksize]))
+		Taps::Operation.resume(opts[:remote_url], session.merge(:default_chunksize => opts[:default_chunksize]))
 	end
 
 end

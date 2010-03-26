@@ -95,8 +95,8 @@ class DataStream
 		state[:avg_chunksize] = state[:total_chunksize] / state[:num_chunksize] rescue state[:chunksize]
 	end
 
-	def compress_rows(rows)
-		Taps::Utils.gzip(Marshal.dump(rows))
+	def encode_rows(rows)
+		Taps::Utils.base64encode(Marshal.dump(rows))
 	end
 
 	def fetch
@@ -104,13 +104,13 @@ class DataStream
 
 		t1 = Time.now
 		rows = fetch_rows
-		gzip_data = compress_rows(rows)
+		encoded_data = encode_rows(rows)
 		t2 = Time.now
 		elapsed_time = t2 - t1
 
 		@complete = rows == { }
 
-		[gzip_data, (@complete ? 0 : rows[:data].size), elapsed_time]
+		[encoded_data, (@complete ? 0 : rows[:data].size), elapsed_time]
 	end
 
 	def complete?
@@ -119,10 +119,10 @@ class DataStream
 
 	def fetch_remote(resource, headers)
 		params = fetch_from_resource(resource, headers)
-		gzip_data = params[:gzip_data]
+		encoded_data = params[:encoded_data]
 		json = params[:json]
 
-		rows = parse_gzip_data(gzip_data, json[:checksum])
+		rows = parse_encoded_data(encoded_data, json[:checksum])
 		@complete = rows == { }
 
 		# update local state
@@ -139,9 +139,9 @@ class DataStream
 	# this one is used inside the server process
 	def fetch_remote_in_server(params)
 		json = self.class.parse_json(params[:json])
-		gzip_data = params[:gzip_data]
+		encoded_data = params[:encoded_data]
 
-		rows = parse_gzip_data(gzip_data, json[:checksum])
+		rows = parse_encoded_data(encoded_data, json[:checksum])
 		@complete = rows == { }
 
 		unless @complete
@@ -175,14 +175,14 @@ class DataStream
 		hash
 	end
 
-	def parse_gzip_data(gzip_data, checksum)
-		raise DataStream::CorruptedData.new("Checksum Failed") unless Taps::Utils.valid_data?(gzip_data, checksum)
+	def parse_encoded_data(encoded_data, checksum)
+		raise DataStream::CorruptedData.new("Checksum Failed") unless Taps::Utils.valid_data?(encoded_data, checksum)
 
 		begin
-			return Marshal.load(Taps::Utils.gunzip(gzip_data))
+			return Marshal.load(Taps::Utils.base64decode(encoded_data))
 		rescue Object => e
-			puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.gz"
-			File.open("dump.#{Process.pid}.gz", "w") { |f| f.write(gzip_data) }
+			puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.dat"
+			File.open("dump.#{Process.pid}.dat", "w") { |f| f.write(encoded_data) }
 			raise
 		end
 	end

@@ -34,22 +34,6 @@ module Utils
 		data.unpack("m").first
 	end
 
-	def gzip(data)
-		io = StringIO.new
-		gz = Zlib::GzipWriter.new(io)
-		gz.write data
-		gz.close
-		base64encode(io.string)
-	end
-
-	def gunzip(gzip_data)
-		io = StringIO.new(base64decode(gzip_data))
-		gz = Zlib::GzipReader.new(io)
-		data = gz.read
-		gz.close
-		data
-	end
-
 	def format_data(data, string_columns)
 		return {} if data.size == 0
 		header = data[0].keys
