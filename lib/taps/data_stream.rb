@@ -187,8 +187,10 @@ class DataStream
 		begin
 			return Marshal.load(Taps::Utils.base64decode(encoded_data))
 		rescue Object => e
-			puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.dat"
-			File.open("dump.#{Process.pid}.dat", "w") { |f| f.write(encoded_data) }
+			unless ENV['NO_DUMP_MARSHAL_ERRORS']
+				puts "Error encountered loading data, wrote the data chunk to dump.#{Process.pid}.dat"
+				File.open("dump.#{Process.pid}.dat", "w") { |f| f.write(encoded_data) }
+			end
 			raise
 		end
 	end
