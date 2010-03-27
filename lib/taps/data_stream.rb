@@ -50,6 +50,10 @@ class DataStream
 		@string_columns ||= Taps::Utils.incorrect_blobs(db, table_name)
 	end
 
+	def boolean_columns
+		@boolean_columns ||= Taps::Utils.incorrect_booleans(db, table_name)
+	end
+
 	def table
 		@table ||= db[table_name]
 	end
@@ -71,7 +75,9 @@ class DataStream
 		state[:chunksize] = fetch_chunksize
 		ds = table.order(*order_by).limit(state[:chunksize], state[:offset])
 		log.debug "DataStream#fetch_rows SQL -> #{ds.sql}"
-		rows = Taps::Utils.format_data(ds.all, string_columns)
+		rows = Taps::Utils.format_data(ds.all,
+			:string_columns => string_columns,
+			:boolean_columns => boolean_columns)
 		update_chunksize_stats
 		rows
 	end
@@ -262,7 +268,9 @@ class DataStreamKeyed < DataStream
 
 	def fetch_rows
 		chunksize = state[:chunksize]
-		Taps::Utils.format_data(fetch_buffered(chunksize) || [], string_columns)
+		Taps::Utils.format_data(fetch_buffered(chunksize) || [],
+			:string_columns => string_columns,
+			:boolean_columns => boolean_columns)
 	end
 
 	def increment(row_count)

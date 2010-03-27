@@ -34,11 +34,15 @@ module Utils
 		data.unpack("m").first
 	end
 
-	def format_data(data, string_columns)
+	def format_data(data, opts={})
 		return {} if data.size == 0
+		string_columns = opts[:string_columns] || []
+		boolean_columns = opts[:boolean_columns] || []
+
 		header = data[0].keys
 		only_data = data.collect do |row|
 			row = blobs_to_string(row, string_columns)
+			row = integers_to_booleans(row, boolean_columns)
 			header.collect { |h| row[h] }
 		end
 		{ :header => header, :data => only_data }
@@ -56,6 +60,28 @@ module Utils
 			columns << column if cdata[:db_type] =~ /text/
 		end
 		columns
+	end
+
+	# mysql does not have a real boolean type so it uses tinyint(1),
+	# we need to convert these column values to real boolean values
+	def incorrect_booleans(db, table)
+		return [] unless db.class.to_s == "Sequel::MySQL::Database"
+
+		columns = []
+		db.schema(table).each do |data|
+			column, cdata = data
+			columns << column if cdata[:type] == :boolean and cdata[:db_type] =~ /tinyint/
+		end
+		columns
+	end
+
+	def integers_to_booleans(row, columns)
+		return row if columns.size == 0
+		columns.each do |c|
+			next unless row[c].nil?
+			row[c] = row[c] == 1
+		end
+		row
 	end
 
 	def blobs_to_string(row, columns)
