@@ -199,6 +199,10 @@ class DataStream
 	end
 
 	def self.factory(db, state)
+		if db.class.to_s == "Sequel::MySQL::Database"
+			Sequel::MySQL.convert_invalid_date_time = :nil
+		end
+
 		if state.has_key?(:klass)
 			return eval(state[:klass]).new(db, state)
 		end
