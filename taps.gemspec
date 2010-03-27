@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{taps}
-  s.version = "0.3.0.pre6"
+  s.version = "0.3.0.pre7"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
-  s.date = %q{2010-03-26}
+  s.date = %q{2010-03-27}
   s.description = %q{A simple database agnostic import/export app to transfer data to/from a remote database.}
   s.email = %q{ricardo@heroku.com}
   s.executables = ["taps", "schema"]
