@@ -184,9 +184,9 @@ class Pull < Operation
 	end
 
 	def run
-		begin
-			verify_server
+		verify_server
 
+		begin
 			pull_schema unless resuming?
 
 			setup_signal_trap
@@ -198,6 +198,7 @@ class Pull < Operation
 			pull_reset_sequences
 			close_session
 		rescue RestClient::Exception => e
+			store_session
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
 				puts "HTTP CODE: #{e.http_code}"
@@ -233,6 +234,8 @@ class Pull < Operation
 	end
 
 	def pull_partial_data
+		return if stream_state == {}
+
 		table_name = stream_state[:table_name]
 		record_count = tables[table_name.to_s]
 		puts "Resuming #{table_name}, #{format_number(record_count)} records"
@@ -334,8 +337,8 @@ class Push < Operation
 	end
 
 	def run
+		verify_server
 		begin
-			verify_server
 			push_schema unless resuming?
 
 			setup_signal_trap
@@ -347,6 +350,7 @@ class Push < Operation
 			push_reset_sequences
 			close_session
 		rescue RestClient::Exception => e
+			store_session
 			if e.respond_to?(:response)
 				puts "!!! Caught Server Exception"
 				puts "HTTP CODE: #{e.http_code}"
@@ -379,6 +383,8 @@ class Push < Operation
 	end
 
 	def push_partial_data
+		return if stream_state == {}
+
 		table_name = stream_state[:table_name]
 		record_count = tables[table_name.to_s]
 		puts "Resuming #{table_name}, #{format_number(record_count)} records"
