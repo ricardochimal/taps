@@ -52,7 +52,7 @@ module Utils
 	# this is not true for other databases so we must check if the field is
 	# actually text and manually convert it back to a string
 	def incorrect_blobs(db, table)
-		return [] unless db.class.to_s == "Sequel::MySQL::Database"
+		return [] if (db.url =~ /mysql:\/\//).nil?
 
 		columns = []
 		db.schema(table).each do |data|
@@ -65,12 +65,15 @@ module Utils
 	# mysql does not have a real boolean type so it uses tinyint(1),
 	# we need to convert these column values to real boolean values
 	def incorrect_booleans(db, table)
-		return [] unless db.class.to_s == "Sequel::MySQL::Database"
+		return [] if (db.url =~ /mysql:\/\//).nil?
 
 		columns = []
 		db.schema(table).each do |data|
 			column, cdata = data
-			columns << column if cdata[:type] == :boolean and cdata[:db_type] =~ /tinyint/
+			if (cdata[:type] == :boolean && cdata[:db_type] =~ /tinyint/) ||
+				cdata[:db_type] == 'tinyint(1)'
+				columns << column
+			end
 		end
 		columns
 	end
