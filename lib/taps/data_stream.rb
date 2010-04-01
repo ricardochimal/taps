@@ -234,11 +234,22 @@ class DataStreamKeyed < DataStream
 		end
 	end
 
+	def calc_limit(chunksize)
+		# we want to not fetch more than is needed while we're
+		# inside sinatra but locally we can select more than
+		# is strictly needed
+		if defined?(Sinatra)
+			(chunksize * 1.1).ceil
+		else
+			(chunksize * 3).ceil
+		end
+	end
+
 	def load_buffer(chunksize)
 		num = 0
 		loop do
-			limit = (chunksize * 1.1).ceil - num
-			ds = table.order(*order_by).filter(primary_key > buffer_limit).limit(limit)
+			limit = calc_limit(chunksize)
+			ds = table.order(*order_by).filter { primary_key > buffer_limit }.limit(limit)
 			log.debug "DataStreamKeyed#load_buffer SQL -> #{ds.sql}"
 			data = ds.all
 			self.buffer += data
