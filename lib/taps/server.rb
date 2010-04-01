@@ -102,20 +102,28 @@ class Server < Sinatra::Base
 		Taps::Utils.schema_bin(:indexes, session.database_url)
 	end
 
-	get '/sessions/:key/pull/tables' do
+	get '/sessions/:key/pull/table_names' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		tables_with_counts = nil
+		tables = []
 		session.conn do |db|
 			tables = db.tables
-			tables_with_counts = tables.inject({}) do |accum, table|
-				accum[table] = db[table].count
-				accum
-			end
 		end
 
-		Marshal.dump(tables_with_counts)
+		content_type 'application/json'
+		tables.to_json
+	end
+
+	post '/sessions/:key/pull/table_count' do
+		session = DbSession.filter(:key => params[:key]).first
+		halt 404 unless session
+
+		count = 0
+		session.conn do |db|
+			count = db[ params[:table].to_sym ].count
+		end
+		count.to_s
 	end
 
 	post '/sessions/:key/pull/table' do

@@ -289,9 +289,9 @@ class Pull < Operation
 
 	def fetch_remote_tables_info
 		retries = 0
-		max_retries = 1
+		max_retries = 10
 		begin
-			tables_with_counts = Marshal.load(session_resource['pull/tables'].get(http_headers).to_s)
+			tables = JSON.load(session_resource['pull/table_names'].get(http_headers).to_s)
 		rescue RestClient::Exception
 			retries += 1
 			retry if retries <= max_retries
@@ -299,7 +299,20 @@ class Pull < Operation
 			exit(1)
 		end
 
-		tables_with_counts
+		data = {}
+		tables.each do |table_name|
+			retries = 0
+			begin
+				count = session_resource['pull/table_count'].post({:table => table_name}, http_headers).to_s.to_i
+				data[table_name] = count
+			rescue RestClient::Exception
+				retries += 1
+				retry if retries <= max_retries
+				puts "Unable to fetch tables information from #{remote_url}. Please check the server log."
+				exit(1)
+			end
+		end
+		data
 	end
 
 	def pull_schema
