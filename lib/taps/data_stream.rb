@@ -249,7 +249,10 @@ class DataStreamKeyed < DataStream
 		num = 0
 		loop do
 			limit = calc_limit(chunksize)
-			ds = table.order(*order_by).filter { primary_key > buffer_limit }.limit(limit)
+			# we have to use local variables in order for the virtual row filter to work correctly
+			key = primary_key
+			buf_limit = buffer_limit
+			ds = table.order(*order_by).filter { key > buf_limit }.limit(limit)
 			log.debug "DataStreamKeyed#load_buffer SQL -> #{ds.sql}"
 			data = ds.all
 			self.buffer += data
