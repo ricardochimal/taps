@@ -246,6 +246,9 @@ class DataStreamKeyed < DataStream
 	end
 
 	def load_buffer(chunksize)
+		# make sure BasicObject is not polluted by subsequent requires
+		Sequel::BasicObject.remove_methods!
+
 		num = 0
 		loop do
 			limit = calc_limit(chunksize)
