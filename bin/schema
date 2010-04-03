@@ -15,6 +15,7 @@ def show_usage_and_exit
 	schema console <database_url>
 	schema dump <database_url>
 	schema indexes <database_url>
+	schema indexes_individual <database_url>
 	schema reset_db_sequences <database_url>
 	schema load <database_url> <schema_file>
 	schema load_indexes <database_url> <indexes_file>
@@ -27,6 +28,8 @@ when 'dump'
 	puts Taps::Schema.dump(database_url)
 when 'indexes'
 	puts Taps::Schema.indexes(database_url)
+when 'indexes_individual'
+	puts Taps::Schema.indexes_individual(database_url)
 when 'load_indexes'
 	filename = ARGV.shift.strip rescue ''
 	indexes = File.read(filename) rescue show_usage_and_exit

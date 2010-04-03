@@ -376,10 +376,18 @@ class Push < Operation
 	end
 
 	def push_indexes
+		indexes = JSON.parse(Taps::Utils.schema_bin(:indexes_individual, database_url))
+
+		return unless indexes.size > 0
+
 		puts "Sending indexes"
 
-		index_data = Taps::Utils.schema_bin(:indexes, database_url)
-		session_resource['push/indexes'].post(index_data, http_headers)
+		progress = ProgressBar.new('indexes', indexes.size)
+		indexes.each do |idx|
+			session_resource['push/indexes'].post(idx, http_headers)
+			progress.inc(1)
+		end
+		progress.finish
 	end
 
 	def push_schema

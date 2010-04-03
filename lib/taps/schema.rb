@@ -2,6 +2,8 @@ require 'sequel'
 require 'sequel/extensions/schema_dumper'
 require 'sequel/extensions/migration'
 
+require 'json'
+
 module Taps
 module Schema
 	extend self
@@ -16,14 +18,36 @@ module Schema
 		db.dump_indexes_migration
 	end
 
+	def indexes_individual(database_url)
+		idxs = []
+		Sequel.connect(database_url) do |db|
+			tables = db.tables
+			tables.each do |table|
+				idxs += db.send(:dump_table_indexes, table, :add_index, {}).split("\n")
+			end
+		end
+
+		idxs.map do |idx|
+			<<END_MIG
+Class.new(Sequel::Migration) do
+	def up
+		#{idx}
+	end
+end
+END_MIG
+		end.to_json
+	end
+
 	def load(database_url, schema)
-		db = Sequel.connect(database_url)
-		eval(schema).apply(db, :up)
+		Sequel.connect(database_url) do |db|
+			eval(schema).apply(db, :up)
+		end
 	end
 
 	def load_indexes(database_url, indexes)
-		db = Sequel.connect(database_url)
-		eval(indexes).apply(db, :up)
+		Sequel.connect(database_url) do |db|
+			eval(indexes).apply(db, :up)
+		end
 	end
 
 	def reset_db_sequences(database_url)
