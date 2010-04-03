@@ -13,7 +13,7 @@ begin
     s.add_dependency 'json_pure', '~> 1.2.0'
     s.add_dependency 'sinatra', '~> 1.0.0'
     s.add_dependency 'rest-client', '~> 1.4.0'
-    s.add_dependency 'sequel', '~> 3.9.0'
+    s.add_dependency 'sequel', '~> 3.10.0'
     s.add_dependency 'sqlite3-ruby', '~> 1.2.0'
     s.add_dependency 'rack', '>= 1.0.1'
 
