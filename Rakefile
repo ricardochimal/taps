@@ -30,13 +30,17 @@ rescue LoadError => e
   end
 end
 
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = 'taps'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
+begin
+  require 'rake/rdoctask'
+  Rake::RDocTask.new do |rdoc|
+    rdoc.rdoc_dir = 'rdoc'
+    rdoc.title = 'taps'
+    rdoc.options << '--line-numbers' << '--inline-source'
+    rdoc.rdoc_files.include('README*')
+    rdoc.rdoc_files.include('lib/**/*.rb')
+  end
+rescue LoadError
+   puts "Rdoc is not available"
 end
 
 begin
@@ -47,7 +51,7 @@ begin
     t.verbose = true
   end
 rescue LoadError
-  puts "RCov is not available. In order to run rcov, you must: sudo gem install spicycode-rcov"
+  puts "RCov is not available. In order to run rcov, you must: sudo gem install rcov"
 end
 
 desc "Run all specs; requires the bacon gem"
