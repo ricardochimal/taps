@@ -99,7 +99,9 @@ class Server < Sinatra::Base
 		halt 404 unless session
 
 		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
-		Taps::Utils.schema_bin(:indexes, session.database_url)
+
+		content_type 'application/json'
+		Taps::Utils.schema_bin(:indexes_individual, session.database_url)
 	end
 
 	get '/sessions/:key/pull/table_names' do
@@ -135,7 +137,6 @@ class Server < Sinatra::Base
 
 		session.conn do |db|
 			state = JSON.parse(params[:state]).symbolize_keys
-# 			puts state.inspect
 			stream = Taps::DataStream.factory(db, state)
 			encoded_data = stream.fetch.first
 		end

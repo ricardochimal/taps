@@ -326,10 +326,17 @@ class Pull < Operation
 	def pull_indexes
 		puts "Receiving indexes"
 
-		index_data = session_resource['pull/indexes'].get(http_headers).to_s
+		idxs = JSON.parse(session_resource['pull/indexes'].get(http_headers).to_s)
 
-		output = Taps::Utils.load_indexes(database_url, index_data)
-		puts output if output
+		idxs.each do |table, indexes|
+			progress = ProgressBar.new(table, indexes.size)
+			indexes.each do |idx|
+				output = Taps::Utils.load_indexes(database_url, idx)
+				puts output if output
+				progress.inc(1)
+			end
+			progress.finish
+		end
 	end
 
 	def pull_reset_sequences
