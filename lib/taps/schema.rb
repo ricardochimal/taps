@@ -19,23 +19,26 @@ module Schema
 	end
 
 	def indexes_individual(database_url)
-		idxs = []
+		idxs = {}
 		Sequel.connect(database_url) do |db|
 			tables = db.tables
 			tables.each do |table|
-				idxs += db.send(:dump_table_indexes, table, :add_index, {}).split("\n")
+				idxs[table] = db.send(:dump_table_indexes, table, :add_index, {}).split("\n")
 			end
 		end
 
-		idxs.map do |idx|
-			<<END_MIG
+		idxs.each do |table, indexes|
+			idxs[table] = indexes.map do |idx|
+				<<END_MIG
 Class.new(Sequel::Migration) do
 	def up
 		#{idx}
 	end
 end
 END_MIG
-		end.to_json
+			end
+		end
+		idxs.to_json
 	end
 
 	def load(database_url, schema)
