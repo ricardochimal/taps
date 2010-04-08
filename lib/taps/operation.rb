@@ -329,6 +329,7 @@ class Pull < Operation
 		idxs = JSON.parse(session_resource['pull/indexes'].get(http_headers).to_s)
 
 		idxs.each do |table, indexes|
+			next unless indexes.size > 0
 			progress = ProgressBar.new(table, indexes.size)
 			indexes.each do |idx|
 				output = Taps::Utils.load_indexes(database_url, idx)
