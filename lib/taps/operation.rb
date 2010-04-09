@@ -28,6 +28,26 @@ class Operation
 		"op"
 	end
 
+	def table_filter
+		opts[:table_filter]
+	end
+
+	def apply_table_filter(tables)
+		return tables unless table_filter
+		re = Regexp.new(table_filter)
+		if tables.kind_of?(Hash)
+			ntables = {}
+			tables.each do |t, d|
+				unless re.match(t.to_s).nil?
+					ntables[t] = d
+				end
+			end
+			ntables
+		else
+			tables.reject { |t| re.match(t.to_s).nil? }
+		end
+	end
+
 	def log
 		Taps.log
 	end
@@ -48,6 +68,7 @@ class Operation
 			:session_uri => session_uri,
 			:stream_state => stream_state,
 			:completed_tables => completed_tables,
+			:table_filter => table_filter,
 		}
 	end
 
@@ -300,7 +321,7 @@ class Pull < Operation
 		end
 
 		data = {}
-		tables.each do |table_name|
+		apply_table_filter(tables).each do |table_name|
 			retries = 0
 			begin
 				count = session_resource['pull/table_count'].post({:table => table_name}, http_headers).to_s.to_i
@@ -328,7 +349,7 @@ class Pull < Operation
 
 		idxs = JSON.parse(session_resource['pull/indexes'].get(http_headers).to_s)
 
-		idxs.each do |table, indexes|
+		apply_table_filter(idxs).each do |table, indexes|
 			next unless indexes.size > 0
 			progress = ProgressBar.new(table, indexes.size)
 			indexes.each do |idx|
@@ -390,7 +411,7 @@ class Push < Operation
 
 		puts "Sending indexes"
 
-		idxs.each do |table, indexes|
+		apply_table_filter(idxs).each do |table, indexes|
 			progress = ProgressBar.new(table, indexes.size)
 			indexes.each do |idx|
 				session_resource['push/indexes'].post(idx, http_headers)
@@ -512,7 +533,7 @@ class Push < Operation
 		db.tables.each do |table|
 			tables_with_counts[table] = db[table].count
 		end
-		tables_with_counts
+		apply_table_filter(tables_with_counts)
 	end
 
 end

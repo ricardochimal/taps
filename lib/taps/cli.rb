@@ -126,6 +126,7 @@ EOHELP
 			o.on("-r", "--resume=file", "Resume a Taps Session from a stored file") { |v| opts[:resume_filename] = v }
 			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
 			o.on("-g", "--disable-compression", "Disable Compression") { |v| opts[:disable_compression] = true }
+			o.on("-f", "--filter=regex", "Regex Filter for tables") { |v| opts[:table_filter] = v }
 			o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
 			o.parse!(argv)
 
