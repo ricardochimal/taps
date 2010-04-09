@@ -234,13 +234,15 @@ class Pull < Operation
 	def pull_schema
 		puts "Receiving schema"
 
-		schema_data = session_resource['pull/schema'].get(http_headers).to_s
-		output = Taps::Utils.load_schema(database_url, schema_data)
-		puts output if output
+		tables.each do |table_name, count|
+			schema_data = session_resource['pull/schema'].post({:table_name => table_name}, http_headers).to_s
+			output = Taps::Utils.load_schema(database_url, schema_data)
+			puts output if output
+		end
 	end
 
 	def pull_data
-		puts "Receiving data (new)"
+		puts "Receiving data"
 
 		puts "#{tables.size} tables, #{format_number(record_count)} records"
 
@@ -334,14 +336,6 @@ class Pull < Operation
 			end
 		end
 		data
-	end
-
-	def pull_schema
-		puts "Receiving schema"
-
-		schema_data = session_resource['pull/schema'].get(http_headers).to_s
-		output = Taps::Utils.load_schema(database_url, schema_data)
-		puts output if output
 	end
 
 	def pull_indexes

@@ -66,7 +66,6 @@ class Server < Sinatra::Base
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
 		Taps::Utils.schema_bin(:reset_db_sequences, session.database_url)
 	end
 
@@ -86,19 +85,16 @@ class Server < Sinatra::Base
 		Taps::Utils.load_indexes(session.database_url, index_data)
 	end
 
-	get '/sessions/:key/pull/schema' do
+	post '/sessions/:key/pull/schema' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
 
-		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
-		Taps::Utils.schema_bin(:dump, session.database_url)
+		Taps::Utils.schema_bin(:dump_table, session.database_url, params[:table_name])
 	end
 
 	get '/sessions/:key/pull/indexes' do
 		session = DbSession.filter(:key => params[:key]).first
 		halt 404 unless session
-
-		schema_app = File.dirname(__FILE__) + '/../../bin/schema'
 
 		content_type 'application/json'
 		Taps::Utils.schema_bin(:indexes_individual, session.database_url)
