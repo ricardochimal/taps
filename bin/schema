@@ -14,6 +14,7 @@ def show_usage_and_exit
 	puts <<EOTXT
 	schema console <database_url>
 	schema dump <database_url>
+	schema dump_table <database_url> <table>
 	schema indexes <database_url>
 	schema indexes_individual <database_url>
 	schema reset_db_sequences <database_url>
@@ -26,6 +27,9 @@ end
 case cmd
 when 'dump'
 	puts Taps::Schema.dump(database_url)
+when 'dump_table'
+	table = ARGV.shift.strip
+	puts Taps::Schema.dump_table(database_url, table)
 when 'indexes'
 	puts Taps::Schema.indexes(database_url)
 when 'indexes_individual'

@@ -424,8 +424,10 @@ class Push < Operation
 	def push_schema
 		puts "Sending schema"
 
-		schema_data = Taps::Utils.schema_bin(:dump, database_url)
-		session_resource['push/schema'].post(schema_data, http_headers)
+		tables.each do |table, count|
+			schema_data = Taps::Utils.schema_bin(:dump_table, database_url, table)
+			session_resource['push/schema'].post(schema_data, http_headers)
+		end
 	end
 
 	def push_reset_sequences

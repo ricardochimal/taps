@@ -13,6 +13,18 @@ module Schema
 		db.dump_schema_migration(:indexes => false)
 	end
 
+	def dump_table(database_url, table)
+		Sequel.connect(database_url) do |db|
+			<<END_MIG
+Class.new(Sequel::Migration) do
+	def up
+		#{db.dump_table_schema(table, :indexes => false)}
+	end
+end
+END_MIG
+		end
+	end
+
 	def indexes(database_url)
 		db = Sequel.connect(database_url)
 		db.dump_indexes_migration
