@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{taps}
-  s.version = "0.3.0.pre9"
+  s.version = "0.3.0.pre10"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
@@ -39,6 +39,7 @@ Gem::Specification.new do |s|
      "lib/taps/utils.rb",
      "spec/base.rb",
      "spec/data_stream_spec.rb",
+     "spec/operation_spec.rb",
      "spec/server_spec.rb",
      "spec/utils_spec.rb"
   ]
@@ -50,6 +51,7 @@ Gem::Specification.new do |s|
   s.summary = %q{simple database import/export app}
   s.test_files = [
     "spec/utils_spec.rb",
+     "spec/operation_spec.rb",
      "spec/data_stream_spec.rb",
      "spec/base.rb",
      "spec/server_spec.rb"
