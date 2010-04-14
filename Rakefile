@@ -6,7 +6,7 @@ begin
     s.email = "ricardo@heroku.com"
     s.homepage = "http://github.com/ricardochimal/taps"
     s.description = "A simple database agnostic import/export app to transfer data to/from a remote database."
-    s.authors = ["Ricardo Chimal, Jr.", "Adam Wiggins"]
+    s.authors = ["Ricardo Chimal, Jr."]
 
     s.rubygems_version = %q{1.3.5}
 
