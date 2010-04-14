@@ -43,3 +43,5 @@ Early research and inspiration by Blake Mizerany
 Released under the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 http://github.com/ricardochimal/taps
+
+Special Thanks to Sequel for making this tool possible http://sequel.rubyforge.org/
