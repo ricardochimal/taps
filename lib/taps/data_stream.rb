@@ -255,7 +255,7 @@ class DataStreamKeyed < DataStream
 			# we have to use local variables in order for the virtual row filter to work correctly
 			key = primary_key
 			buf_limit = buffer_limit
-			ds = table.order(*order_by).filter { key > buf_limit }.limit(limit)
+			ds = table.order(*order_by).filter { key.sql_number > buf_limit }.limit(limit)
 			log.debug "DataStreamKeyed#load_buffer SQL -> #{ds.sql}"
 			data = ds.all
 			self.buffer += data
