@@ -127,6 +127,10 @@ EOHELP
 			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
 			o.on("-g", "--disable-compression", "Disable Compression") { |v| opts[:disable_compression] = true }
 			o.on("-f", "--filter=regex", "Regex Filter for tables") { |v| opts[:table_filter] = v }
+			o.on("-t", "--tables=A,B,C", Array, "Shortcut to filter on a list of tables") do |v|
+				r_tables = v.collect { |t| "^#{t}$" }.join("|")
+				opts[:table_filter] = "(#{r_tables})"
+			end
 			o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
 			o.parse!(argv)
 
