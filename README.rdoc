@@ -22,9 +22,13 @@ or when you want to push a local database to a taps server
 
   $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000
 
-or when you want to transfer only 1 table
+or when you want to transfer a list of tables
 
-  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --filter mytable
+  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --tables logs,tags
+
+or when you want to transfer tables that start with a word
+
+  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --filter '^log_'
 
 == Known Issues
 
