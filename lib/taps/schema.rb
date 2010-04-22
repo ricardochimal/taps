@@ -20,6 +20,10 @@ Class.new(Sequel::Migration) do
 	def up
 		#{db.dump_table_schema(table, :indexes => false)}
 	end
+
+	def down
+		drop_table(\"#{table}\")
+	end
 end
 END_MIG
 		end
@@ -55,7 +59,9 @@ END_MIG
 
 	def load(database_url, schema)
 		Sequel.connect(database_url) do |db|
-			eval(schema).apply(db, :up)
+			klass = eval(schema)
+			klass.apply(db, :down)
+			klass.apply(db, :up)
 		end
 	end
 
