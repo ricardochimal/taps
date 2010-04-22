@@ -22,7 +22,7 @@ Class.new(Sequel::Migration) do
 	end
 
 	def down
-		drop_table(\"#{table}\")
+		drop_table(\"#{table}\") if @db.table_exists?(\"#{table}\")
 	end
 end
 END_MIG
