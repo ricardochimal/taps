@@ -10,7 +10,7 @@ begin
 
     s.rubygems_version = %q{1.3.5}
 
-    s.add_dependency 'json_pure', '~> 1.2.0'
+    s.add_dependency 'json_pure', '>= 1.2.0', '< 1.5.0'
     s.add_dependency 'sinatra', '~> 1.0.0'
     s.add_dependency 'rest-client', '~> 1.4.0'
     s.add_dependency 'sequel', '~> 3.10.0'

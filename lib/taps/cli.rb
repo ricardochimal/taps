@@ -1,6 +1,6 @@
 require 'optparse'
 require 'tempfile'
-require 'json'
+require 'json/pure'
 require 'taps/monkey'
 require 'taps/config'
 require 'taps/log'

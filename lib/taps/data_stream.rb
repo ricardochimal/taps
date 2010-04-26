@@ -2,7 +2,7 @@ require 'taps/monkey'
 require 'taps/multipart'
 require 'taps/utils'
 require 'taps/log'
-require 'json'
+require 'json/pure'
 
 module Taps
 

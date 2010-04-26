@@ -1,6 +1,6 @@
 require 'restclient'
 require 'rack/utils'
-require 'json'
+require 'json/pure'
 require 'stringio'
 
 module Taps
