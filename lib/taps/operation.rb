@@ -410,6 +410,7 @@ class Push < Operation
 		puts "Sending indexes"
 
 		apply_table_filter(idxs).each do |table, indexes|
+			next unless indexes.size > 0
 			progress = ProgressBar.new(table, indexes.size)
 			indexes.each do |idx|
 				session_resource['push/indexes'].post(idx, http_headers)
