@@ -28,6 +28,10 @@ class Operation
 		"op"
 	end
 
+	def indexes_first?
+		!!opts[:indexes_first]
+	end
+
 	def table_filter
 		opts[:table_filter]
 	end
@@ -208,14 +212,14 @@ class Pull < Operation
 		verify_server
 
 		begin
-			pull_schema unless resuming?
-
+			unless resuming?
+				pull_schema
+				pull_indexes if indexes_first?
+			end
 			setup_signal_trap
-
 			pull_partial_data if resuming?
-
 			pull_data
-			pull_indexes
+			pull_indexes unless indexes_first?
 			pull_reset_sequences
 			close_session
 		rescue RestClient::Exception => e
@@ -375,14 +379,14 @@ class Push < Operation
 	def run
 		verify_server
 		begin
-			push_schema unless resuming?
-
+			unless resuming?
+				push_schema
+				push_indexes if indexes_first?
+			end
 			setup_signal_trap
-
 			push_partial_data if resuming?
-
 			push_data
-			push_indexes
+			push_indexes unless indexes_first?
 			push_reset_sequences
 			close_session
 		rescue RestClient::Exception => e

@@ -112,7 +112,7 @@ EOHELP
 	end
 
 	def clientoptparse(cmd)
-		opts={:default_chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil, :disable_compresion => false}
+		opts={:default_chunksize => 1000, :database_url => nil, :remote_url => nil, :debug => false, :resume_filename => nil, :disable_compresion => false, :indexes_first => false}
 		OptionParser.new do |o|
 			o.banner = "Usage: #{File.basename($0)} #{cmd} [OPTIONS] <local_database_url> <remote_url>"
 
@@ -123,6 +123,7 @@ EOHELP
 				o.define_head "Push a database to a taps server"
 			end
 
+			o.on("-i", "--indexes-first", "Transfer indexes first before data") { |v| opts[:indexes_first] = true }
 			o.on("-r", "--resume=file", "Resume a Taps Session from a stored file") { |v| opts[:resume_filename] = v }
 			o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
 			o.on("-g", "--disable-compression", "Disable Compression") { |v| opts[:disable_compression] = true }
