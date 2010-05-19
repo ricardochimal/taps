@@ -2,6 +2,8 @@ require 'sequel'
 require 'sqlite3'
 require 'yaml'
 
+Sequel.datetime_class = DateTime
+
 module Taps
 	def self.version_yml
 		@@version_yml ||= YAML.load(File.read(File.dirname(__FILE__) + '/../../VERSION.yml'))
