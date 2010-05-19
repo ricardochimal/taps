@@ -238,11 +238,14 @@ class Pull < Operation
 	def pull_schema
 		puts "Receiving schema"
 
+		progress = ProgressBar.new('Schema', tables.size)
 		tables.each do |table_name, count|
 			schema_data = session_resource['pull/schema'].post({:table_name => table_name}, http_headers).to_s
 			output = Taps::Utils.load_schema(database_url, schema_data)
 			puts output if output
+			progress.inc(1)
 		end
+		progress.finish
 	end
 
 	def pull_data
@@ -423,10 +426,13 @@ class Push < Operation
 	def push_schema
 		puts "Sending schema"
 
+		progress = ProgressBar.new('Schema', tables.size)
 		tables.each do |table, count|
 			schema_data = Taps::Utils.schema_bin(:dump_table, database_url, table)
 			session_resource['push/schema'].post(schema_data, http_headers)
+			progress.inc(1)
 		end
+		progress.finish
 	end
 
 	def push_reset_sequences
