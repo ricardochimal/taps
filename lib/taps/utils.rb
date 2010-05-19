@@ -122,7 +122,7 @@ module Utils
 	end
 
 	def schema_bin(*args)
-		`#{File.dirname(__FILE__)}/../../bin/#{bin('schema')} #{args.map { |a| "'#{a}'" }.join(' ')}`
+		`'#{File.dirname(__FILE__)}/../../bin/#{bin('schema')}' #{args.map { |a| "'#{a}'" }.join(' ')}`
 	end
 
 	def primary_key(db, table)
