@@ -126,6 +126,7 @@ module Utils
 	end
 
 	def primary_key(db, table)
+		table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
 		if db.respond_to?(:primary_key)
 			db.primary_key(table)
 		else
@@ -134,6 +135,7 @@ module Utils
 	end
 
 	def single_integer_primary_key(db, table)
+		table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
 		keys = db.schema(table).select { |c| c[1][:primary_key] and c[1][:type] == :integer }
 		not keys.nil? and keys.size == 1
 	end
@@ -143,6 +145,7 @@ module Utils
 		if pkey
 			pkey.kind_of?(Array) ? pkey : [pkey.to_sym]
 		else
+			table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
 			db[table].columns
 		end
 	end

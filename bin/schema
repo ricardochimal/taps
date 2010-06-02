@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-gem 'sequel', '~> 3.10.0'
+gem 'sequel', '~> 3.12.0'
 
 $:.unshift File.dirname(__FILE__) + '/../lib'
 

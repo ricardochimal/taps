@@ -38,6 +38,10 @@ class DataStream
 		state[:table_name].to_sym
 	end
 
+	def table_name_sql
+		table_name.identifier
+	end
+
 	def to_hash
 		state.merge(:klass => self.class.to_s)
 	end
@@ -51,7 +55,7 @@ class DataStream
 	end
 
 	def table
-		@table ||= db[table_name]
+		@table ||= db[table_name_sql]
 	end
 
 	def order_by(name=nil)

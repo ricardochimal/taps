@@ -538,7 +538,7 @@ class Push < Operation
 	def fetch_local_tables_info
 		tables_with_counts = {}
 		db.tables.each do |table|
-			tables_with_counts[table] = db[table].count
+			tables_with_counts[table] = db[table.to_sym.identifier].count
 		end
 		apply_table_filter(tables_with_counts)
 	end

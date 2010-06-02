@@ -119,7 +119,7 @@ class Server < Sinatra::Base
 
 		count = 0
 		session.conn do |db|
-			count = db[ params[:table].to_sym ].count
+			count = db[ params[:table].to_sym.identifier ].count
 		end
 		count.to_s
 	end

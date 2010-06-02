@@ -14,15 +14,16 @@ module Schema
 	end
 
 	def dump_table(database_url, table)
+		table = table.to_sym
 		Sequel.connect(database_url) do |db|
 			<<END_MIG
 Class.new(Sequel::Migration) do
 	def up
-		#{db.dump_table_schema(table, :indexes => false)}
+		#{db.dump_table_schema(table.identifier, :indexes => false)}
 	end
 
 	def down
-		drop_table(\"#{table}\") if @db.table_exists?(\"#{table}\")
+		drop_table("#{table}") if @db.table_exists?("#{table}")
 	end
 end
 END_MIG
