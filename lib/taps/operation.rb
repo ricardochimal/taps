@@ -58,7 +58,7 @@ class Operation
 
 	def store_session
 		file = "#{file_prefix}_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
-		puts "Saving session to #{file}.."
+		puts "\nSaving session to #{file}.."
 		File.open(file, 'w') do |f|
 			f.write(to_hash.to_json)
 		end
