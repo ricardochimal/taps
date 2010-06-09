@@ -123,7 +123,7 @@ module Utils
 
 	def schema_bin(*args)
 		bin_path = File.expand_path("#{File.dirname(__FILE__)}/../../bin/#{bin('schema')}")
-		`'#{bin_path}' #{args.map { |a| "'#{a}'" }.join(' ')}`
+		`"#{bin_path}" #{args.map { |a| "'#{a}'" }.join(' ')}`
 	end
 
 	def primary_key(db, table)
