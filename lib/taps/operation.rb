@@ -153,7 +153,7 @@ class Operation
 	end
 
 	def http_headers(extra = {})
-		base = { :taps_version => Taps.compatible_version }
+		base = { :taps_version => Taps.version }
 		if compression_disabled?
 			base[:accept_encoding] = ""
 		else
@@ -241,6 +241,7 @@ class Pull < Operation
 		progress = ProgressBar.new('Schema', tables.size)
 		tables.each do |table_name, count|
 			schema_data = session_resource['pull/schema'].post({:table_name => table_name}, http_headers).to_s
+			log.debug "Table: #{table_name}\n#{schema_data}\n"
 			output = Taps::Utils.load_schema(database_url, schema_data)
 			puts output if output
 			progress.inc(1)
@@ -429,6 +430,7 @@ class Push < Operation
 		progress = ProgressBar.new('Schema', tables.size)
 		tables.each do |table, count|
 			schema_data = Taps::Utils.schema_bin(:dump_table, database_url, table)
+			log.debug "Table: #{table}\n#{schema_data}\n"
 			session_resource['push/schema'].post(schema_data, http_headers)
 			progress.inc(1)
 		end
