@@ -9,6 +9,8 @@ module Taps
 class DataStream
 	class CorruptedData < Exception; end
 
+	DEFAULT_CHUNKSIZE = 1000
+
 	attr_reader :db, :state
 
 	def initialize(db, state)
@@ -19,6 +21,7 @@ class DataStream
 			:num_chunksize => 0,
 			:total_chunksize => 0,
 		}.merge(state)
+		@state[:chunksize] ||= DEFAULT_CHUNKSIZE
 		@complete = false
 	end
 
@@ -223,6 +226,7 @@ class DataStreamKeyed < DataStream
 	def initialize(db, state)
 		super(db, state)
 		@state = { :primary_key => order_by(state[:table_name]).first, :filter => 0 }.merge(state)
+		@state[:chunksize] ||= DEFAULT_CHUNKSIZE
 		@buffer = []
 	end
 
