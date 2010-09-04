@@ -65,8 +65,8 @@ end
 
 desc "copy/paste env vars for dev testing"
 task :env do
-	puts "export RUBYLIB='#{File.dirname(__FILE__) + '/lib'}'"
-	puts "export RUBYOPT='-rrubygems'"
+  puts "export RUBYLIB='#{File.dirname(__FILE__) + '/lib'}'"
+  puts "export RUBYOPT='-rrubygems'"
 end
 
 task :default => :spec

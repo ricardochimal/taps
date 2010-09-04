@@ -11,44 +11,44 @@ cmd = ARGV.shift.strip rescue ''
 database_url = ARGV.shift.strip rescue ''
 
 def show_usage_and_exit
-	puts <<EOTXT
-	schema console <database_url>
-	schema dump <database_url>
-	schema dump_table <database_url> <table>
-	schema indexes <database_url>
-	schema indexes_individual <database_url>
-	schema reset_db_sequences <database_url>
-	schema load <database_url> <schema_file>
-	schema load_indexes <database_url> <indexes_file>
+  puts <<EOTXT
+  schema console <database_url>
+  schema dump <database_url>
+  schema dump_table <database_url> <table>
+  schema indexes <database_url>
+  schema indexes_individual <database_url>
+  schema reset_db_sequences <database_url>
+  schema load <database_url> <schema_file>
+  schema load_indexes <database_url> <indexes_file>
 EOTXT
-	exit(1)
+  exit(1)
 end
 
 case cmd
 when 'dump'
-	puts Taps::Schema.dump(database_url)
+  puts Taps::Schema.dump(database_url)
 when 'dump_table'
-	table = ARGV.shift.strip
-	puts Taps::Schema.dump_table(database_url, table)
+  table = ARGV.shift.strip
+  puts Taps::Schema.dump_table(database_url, table)
 when 'indexes'
-	puts Taps::Schema.indexes(database_url)
+  puts Taps::Schema.indexes(database_url)
 when 'indexes_individual'
-	puts Taps::Schema.indexes_individual(database_url)
+  puts Taps::Schema.indexes_individual(database_url)
 when 'load_indexes'
-	filename = ARGV.shift.strip rescue ''
-	indexes = File.read(filename) rescue show_usage_and_exit
-	Taps::Schema.load_indexes(database_url, indexes)
+  filename = ARGV.shift.strip rescue ''
+  indexes = File.read(filename) rescue show_usage_and_exit
+  Taps::Schema.load_indexes(database_url, indexes)
 when 'load'
-	filename = ARGV.shift.strip rescue ''
-	schema = File.read(filename) rescue show_usage_and_exit
-	Taps::Schema.load(database_url, schema)
+  filename = ARGV.shift.strip rescue ''
+  schema = File.read(filename) rescue show_usage_and_exit
+  Taps::Schema.load(database_url, schema)
 when 'reset_db_sequences'
-	Taps::Schema.reset_db_sequences(database_url)
+  Taps::Schema.reset_db_sequences(database_url)
 when 'console'
-	$db = Sequel.connect(database_url)
-	require 'irb'
-	require 'irb/completion'
-	IRB.start
+  $db = Sequel.connect(database_url)
+  require 'irb'
+  require 'irb/completion'
+  IRB.start
 else
-	show_usage_and_exit
+  show_usage_and_exit
 end
