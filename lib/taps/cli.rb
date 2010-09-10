@@ -5,7 +5,12 @@ require 'taps/monkey'
 require 'taps/config'
 require 'taps/log'
 
-Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || "sqlite://#{Tempfile.new('taps.db').path}"
+Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || begin
+  # this is dirty but it solves a weird problem where the tempfile disappears mid-process
+  $__taps_database = Tempfile.new('taps.db')
+  $__taps_database.open()
+  "sqlite://#{$__taps_database.path}"
+end
 
 module Taps
 class Cli
