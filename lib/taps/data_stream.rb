@@ -2,13 +2,12 @@ require 'taps/monkey'
 require 'taps/multipart'
 require 'taps/utils'
 require 'taps/log'
+require 'taps/errors'
 require 'json/pure'
 
 module Taps
 
 class DataStream
-  class CorruptedData < Exception; end
-
   DEFAULT_CHUNKSIZE = 1000
 
   attr_reader :db, :state
@@ -173,7 +172,7 @@ class DataStream
       params[:json] = self.class.parse_json(params[:json]) if params.has_key?(:json)
       return params
     rescue JSON::Parser
-      raise DataStream::CorruptedData.new("Invalid JSON Received")
+      raise Taps::CorruptedData.new("Invalid JSON Received")
     end
   end
 
@@ -184,7 +183,7 @@ class DataStream
   end
 
   def parse_encoded_data(encoded_data, checksum)
-    raise DataStream::CorruptedData.new("Checksum Failed") unless Taps::Utils.valid_data?(encoded_data, checksum)
+    raise Taps::CorruptedData.new("Checksum Failed") unless Taps::Utils.valid_data?(encoded_data, checksum)
 
     begin
       return Marshal.load(Taps::Utils.base64decode(encoded_data))
@@ -200,6 +199,17 @@ class DataStream
   def import_rows(rows)
     table.import(rows[:header], rows[:data])
     state[:offset] += rows[:data].size
+  end
+
+  def verify_stream
+    state[:offset] = table.count
+  end
+
+  def verify_remote_stream(resource, headers)
+    json_raw = resource.post({:state => self.to_json}, headers).to_s
+    json = self.class.parse_json(json_raw)
+
+    self.class.new(db, json[:state])
   end
 
   def self.factory(db, state)
@@ -301,6 +311,19 @@ class DataStreamKeyed < DataStream
   def increment(row_count)
     # pop the rows we just successfully sent off the buffer
     @buffer.slice!(0, row_count)
+  end
+
+  def verify_stream
+    key = primary_key
+    ds = table.order(*order_by)
+    current_filter = ds.max(key.sql_number)
+
+    # set the current filter to the max of the primary key
+    state[:filter] = current_filter
+    # clear out the last_fetched value so it can restart from scratch
+    state[:last_fetched] = nil
+
+    log.debug "DataStreamKeyed#verify_stream -> state: #{state.inspect}"
   end
 end
 

@@ -6,6 +6,7 @@ require 'taps/progress_bar'
 require 'taps/config'
 require 'taps/utils'
 require 'taps/data_stream'
+require 'taps/errors'
 
 # disable warnings, rest client makes a lot of noise right now
 $VERBOSE = nil
@@ -222,9 +223,14 @@ class Pull < Operation
       pull_indexes unless indexes_first?
       pull_reset_sequences
       close_session
-    rescue RestClient::Exception => e
+    rescue (RestClient::Exception, Taps::Base) => e
       store_session
-      if e.respond_to?(:response)
+      if e.kind_of?(Taps::Base)
+        puts "!!! Caught Server Exception"
+        puts "#{e.class}: #{e.message}"
+        puts "\n#{e.original_backtrace}" if e.original_backtrace
+        exit(1)
+      elsif e.respond_to?(:response)
         puts "!!! Caught Server Exception"
         puts "HTTP CODE: #{e.http_code}"
         puts "#{e.response.to_s}"
@@ -289,7 +295,7 @@ class Pull < Operation
         progress.inc(size) unless exiting?
         stream.error = false
         self.stream_state = stream.to_hash
-      rescue DataStream::CorruptedData => e
+      rescue Taps::CorruptedData => e
         puts "Corrupted Data Received #{e.message}, retrying..."
         stream.error = true
         next
@@ -393,9 +399,14 @@ class Push < Operation
       push_indexes unless indexes_first?
       push_reset_sequences
       close_session
-    rescue RestClient::Exception => e
+    rescue (RestClient::Exception, Taps::Base) => e
       store_session
-      if e.respond_to?(:response)
+      if e.kind_of?(Taps::Base)
+        puts "!!! Caught Server Exception"
+        puts "#{e.class}: #{e.message}"
+        puts "\n#{e.original_backtrace}" if e.original_backtrace
+        exit(1)
+      elsif e.respond_to?(:response)
         puts "!!! Caught Server Exception"
         puts "HTTP CODE: #{e.http_code}"
         puts "#{e.response.to_s}"
@@ -477,35 +488,42 @@ class Push < Operation
 
       row_size = 0
       chunksize = stream.state[:chunksize]
-      chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-        stream.state[:chunksize] = c
-        encoded_data, row_size, elapsed_time = stream.fetch
-        break if stream.complete?
 
-        data = {
-          :state => stream.to_hash,
-          :checksum => Taps::Utils.checksum(encoded_data).to_s
-        }
+      begin
+        chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
+          stream.state[:chunksize] = c
+          encoded_data, row_size, elapsed_time = stream.fetch
+          break if stream.complete?
 
-        begin
-          content, content_type = Taps::Multipart.create do |r|
-            r.attach :name => :encoded_data,
-              :payload => encoded_data,
-              :content_type => 'application/octet-stream'
-            r.attach :name => :json,
-              :payload => data.to_json,
-              :content_type => 'application/json'
+          data = {
+            :state => stream.to_hash,
+            :checksum => Taps::Utils.checksum(encoded_data).to_s
+          }
+
+          begin
+            content, content_type = Taps::Multipart.create do |r|
+              r.attach :name => :encoded_data,
+                :payload => encoded_data,
+                :content_type => 'application/octet-stream'
+              r.attach :name => :json,
+                :payload => data.to_json,
+                :content_type => 'application/json'
+            end
+            session_resource['push/table'].post(content, http_headers(:content_type => content_type))
+            self.stream_state = stream.to_hash
+          rescue => e
+            Taps::Utils.reraise_server_exception(e)
           end
-          session_resource['push/table'].post(content, http_headers(:content_type => content_type))
-          self.stream_state = stream.to_hash
-        rescue RestClient::RequestFailed => e
-          # retry the same data, it got corrupted somehow.
-          if e.http_code == 412
-            next
-          end
-          raise
+
+          elapsed_time
         end
-        elapsed_time
+      rescue Taps::CorruptedData => e
+        # retry the same data, it got corrupted somehow.
+        next
+      rescue Taps::DuplicatePrimaryKeyError => e
+        # verify the stream and retry it
+        stream = stream.verify_remote_stream(session_resource['push/verify_stream'], http_headers)
+        next
       end
       stream.state[:chunksize] = chunksize
 

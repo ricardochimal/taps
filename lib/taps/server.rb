@@ -14,7 +14,12 @@ class Server < Sinatra::Base
 
   error do
     e = request.env['sinatra.error']
-    "Taps Server Error: #{e}\n#{e.backtrace}"
+    if e.kind_of?(Taps::BaseError)
+      content_type "application/json"
+      halt 412, { 'error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n") }.to_json
+    else
+      "Taps Server Error: #{e}\n#{e.backtrace}"
+    end
   end
 
   before do
@@ -42,6 +47,25 @@ class Server < Sinatra::Base
     "/sessions/#{key}"
   end
 
+  post '/sessions/:key/push/verify_stream' do
+    session = DbSession.filter(:key => params[:key]).first
+    halt 404 unless session
+
+    state = DataStream.parse_json(params[:state])
+    stream = nil
+
+    size = 0
+    session.conn do |db|
+      Taps::Utils.server_error_handling do
+        stream = DataStream.factory(db, state)
+        stream.verify_stream
+      end
+    end
+
+    content_type 'application/json'
+    { :state => stream.to_hash }.to_json
+  end
+
   post '/sessions/:key/push/table' do
     session = DbSession.filter(:key => params[:key]).first
     halt 404 unless session
@@ -50,11 +74,9 @@ class Server < Sinatra::Base
 
     size = 0
     session.conn do |db|
-      begin
+      Taps::Utils.server_error_handling do
         stream = DataStream.factory(db, json[:state])
         size = stream.fetch_remote_in_server(params)
-      rescue Taps::DataStream::CorruptedData
-        halt 412
       end
     end
 

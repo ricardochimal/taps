@@ -3,6 +3,8 @@ require 'stringio'
 require 'time'
 require 'tempfile'
 
+require 'taps/errors'
+
 module Taps
 module Utils
   extend self
@@ -149,6 +151,32 @@ module Utils
       table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
       db[table].columns
     end
+  end
+
+
+  # try to detect server side errors to
+  # give the client a more useful error message
+  def server_error_handling(&blk)
+    begin
+      blk.call
+    rescue Sequel::DatabaseError => e
+      if e.message =~ /duplicate key value/i
+        raise Taps::DuplicatePrimaryKeyError, e.message
+      else
+        raise
+      end
+    end
+  end
+
+  def reraise_server_exception(e)
+    if e.kind_of?(RestClient::Exception)
+      if e.respond_to?(:response) && e.response.headers[:content_type] == 'application/json'
+        json = JSON.parse(e.response.to_s)
+        klass = eval(json['error_class']) rescue nil
+        raise klass.new(json['error_message'], :backtrace => json['error_backtrace']) if klass
+      end
+    end
+    raise e
   end
 end
 end
