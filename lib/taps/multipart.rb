@@ -1,7 +1,15 @@
 require 'restclient'
-require 'rack/utils'
 require 'json/pure'
 require 'stringio'
+
+# ruby 1.8.6 + rack 1.2.1 don't play together
+begin
+  require 'rack/utils'
+rescue TypeError
+  puts 'Ruby 1.8.6 and Rack 1.2.1 are not compatible.'
+  puts 'Please uninstall rack-1.2.1 and install rack-1.1.0'
+  exit 1
+end
 
 module Taps
 class Multipart
