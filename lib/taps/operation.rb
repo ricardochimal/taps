@@ -187,6 +187,30 @@ class Operation
     end
   end
 
+  def catch_errors(&blk)
+    verify_server
+
+    begin
+      blk.call
+      close_session
+    rescue RestClient::Exception, Taps::BaseError => e
+      store_session
+      if e.kind_of?(Taps::BaseError)
+        puts "!!! Caught Server Exception"
+        puts "#{e.class}: #{e.message}"
+        puts "\n#{e.original_backtrace}" if e.original_backtrace
+        exit(1)
+      elsif e.respond_to?(:response)
+        puts "!!! Caught Server Exception"
+        puts "HTTP CODE: #{e.http_code}"
+        puts "#{e.response.to_s}"
+        exit(1)
+      else
+        raise
+      end
+    end
+  end
+
   def self.factory(type, database_url, remote_url, opts)
     type = :resume if opts[:resume]
     klass = case type
@@ -210,9 +234,7 @@ class Pull < Operation
   end
 
   def run
-    verify_server
-
-    begin
+    catch_errors do
       unless resuming?
         pull_schema
         pull_indexes if indexes_first?
@@ -222,22 +244,6 @@ class Pull < Operation
       pull_data
       pull_indexes unless indexes_first?
       pull_reset_sequences
-      close_session
-    rescue (RestClient::Exception, Taps::Base) => e
-      store_session
-      if e.kind_of?(Taps::Base)
-        puts "!!! Caught Server Exception"
-        puts "#{e.class}: #{e.message}"
-        puts "\n#{e.original_backtrace}" if e.original_backtrace
-        exit(1)
-      elsif e.respond_to?(:response)
-        puts "!!! Caught Server Exception"
-        puts "HTTP CODE: #{e.http_code}"
-        puts "#{e.response.to_s}"
-        exit(1)
-      else
-        raise
-      end
     end
   end
 
@@ -387,8 +393,7 @@ class Push < Operation
   end
 
   def run
-    verify_server
-    begin
+    catch_errors do
       unless resuming?
         push_schema
         push_indexes if indexes_first?
@@ -398,22 +403,6 @@ class Push < Operation
       push_data
       push_indexes unless indexes_first?
       push_reset_sequences
-      close_session
-    rescue (RestClient::Exception, Taps::Base) => e
-      store_session
-      if e.kind_of?(Taps::Base)
-        puts "!!! Caught Server Exception"
-        puts "#{e.class}: #{e.message}"
-        puts "\n#{e.original_backtrace}" if e.original_backtrace
-        exit(1)
-      elsif e.respond_to?(:response)
-        puts "!!! Caught Server Exception"
-        puts "HTTP CODE: #{e.http_code}"
-        puts "#{e.response.to_s}"
-        exit(1)
-      else
-        raise
-      end
     end
   end
 
