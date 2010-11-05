@@ -12,6 +12,12 @@ describe Taps::Utils do
     Taps::Utils.format_data([ first_row, { :x => 2, :y => 2 } ]).should == { :header => [ :x, :y ], :data => [ [1, 1], [2, 2] ] }
   end
 
+  it "enforces length limitations on columns" do
+    data = [ { :a => "aaabbbccc" } ]
+    schema = [ [ :a, { :db_type => "varchar(3)" }]]
+    lambda { Taps::Utils.format_data(data, :schema => schema) }.should.raise(Taps::InvalidData)
+  end
+
   it "scales chunksize down slowly when the time delta of the block is just over a second" do
     Time.stubs(:now).returns(10.0).returns(11.5)
     Taps::Utils.calculate_chunksize(1000) { }.should == 900

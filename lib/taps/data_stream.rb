@@ -78,7 +78,10 @@ class DataStream
     ds = table.order(*order_by).limit(state[:chunksize], state[:offset])
     log.debug "DataStream#fetch_rows SQL -> #{ds.sql}"
     rows = Taps::Utils.format_data(ds.all,
-      :string_columns => string_columns)
+      :string_columns => string_columns,
+      :schema => db.schema(table_name),
+      :table  => table_name
+    )
     update_chunksize_stats
     rows
   end
