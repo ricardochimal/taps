@@ -151,12 +151,7 @@ Data   : #{data}
   end
 
   def primary_key(db, table)
-    table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
-    if db.respond_to?(:primary_key)
-      db.primary_key(table)
-    else
-      db.schema(table).select { |c| c[1][:primary_key] }.map { |c| c.first.to_sym }
-    end
+    db.schema(table).select { |c| c[1][:primary_key] }.map { |c| c[0] }
   end
 
   def single_integer_primary_key(db, table)
