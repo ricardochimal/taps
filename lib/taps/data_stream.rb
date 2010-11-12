@@ -218,6 +218,7 @@ class DataStream
   def self.factory(db, state)
     if defined?(Sequel::MySQL) && Sequel::MySQL.respond_to?(:convert_invalid_date_time=)
       Sequel::MySQL.convert_invalid_date_time = :nil
+      Sequel::MySQL.convert_tinyint_to_bool = false      
     end
 
     if state.has_key?(:klass)
