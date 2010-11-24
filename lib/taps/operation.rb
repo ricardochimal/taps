@@ -479,16 +479,15 @@ class Push < Operation
       chunksize = stream.state[:chunksize]
 
       begin
-        chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-          stream.state[:chunksize] = c
-          encoded_data, row_size, elapsed_time = stream.fetch
-          break if stream.complete?
+        stream.state[:chunksize] = chunksize
+        encoded_data, row_size, elapsed_time = stream.fetch
+        break if stream.complete?
+        data = {
+          :state => stream.to_hash,
+          :checksum => Taps::Utils.checksum(encoded_data).to_s
+        }
 
-          data = {
-            :state => stream.to_hash,
-            :checksum => Taps::Utils.checksum(encoded_data).to_s
-          }
-
+        chunksize = Taps::Utils.calculate_chunksize(chunksize) do
           begin
             content, content_type = Taps::Multipart.create do |r|
               r.attach :name => :encoded_data,
