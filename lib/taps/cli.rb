@@ -137,6 +137,7 @@ EOHELP
         r_tables = v.collect { |t| "^#{t}$" }.join("|")
         opts[:table_filter] = "(#{r_tables})"
       end
+      o.on("-s", "--skip-schema", "Skip schema migration") { |v| opts[:skip_schema]=true}
       o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
       o.parse!(argv)
 
