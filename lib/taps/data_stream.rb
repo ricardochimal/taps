@@ -202,6 +202,16 @@ class DataStream
   def import_rows(rows)
     table.import(rows[:header], rows[:data])
     state[:offset] += rows[:data].size
+  rescue Exception => ex
+    case ex.message
+    when /integer out of range/ then
+      raise Taps::InvalidData, <<-ERROR, []
+\nDetected integer data that exceeds the maximum allowable size for an integer type.
+This generally occurs when importing from SQLite due to the fact that SQLite does
+not enforce maximum values on integer types.
+      ERROR
+    else raise ex
+    end
   end
 
   def verify_stream
