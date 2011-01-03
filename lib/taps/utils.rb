@@ -70,9 +70,9 @@ Data   : #{data}
     { :header => header, :data => only_data }
   end
 
-  # mysql text and blobs fields are handled the same way internally
-  # this is not true for other databases so we must check if the field is
-  # actually text and manually convert it back to a string
+# mysql text and blobs fields are handled the same way internally
+# this is not true for other databases so we must check if the field is
+# actually text and manually convert it back to a string
   def incorrect_blobs(db, table)
     return [] if (db.url =~ /mysql:\/\//).nil?
 
