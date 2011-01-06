@@ -3,7 +3,7 @@ require 'taps/multipart'
 require 'taps/utils'
 require 'taps/log'
 require 'taps/errors'
-require 'json/pure'
+require 'json'
 
 module Taps
 

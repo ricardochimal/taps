@@ -2,7 +2,7 @@ require 'sequel'
 require 'sequel/extensions/schema_dumper'
 require 'sequel/extensions/migration'
 
-require 'json/pure'
+require 'json'
 
 module Taps
 module Schema
