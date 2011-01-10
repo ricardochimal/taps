@@ -1,36 +1,4 @@
 begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |s|
-    s.name = "taps"
-    s.summary = %Q{simple database import/export app}
-    s.email = "ricardo@heroku.com"
-    s.homepage = "http://github.com/ricardochimal/taps"
-    s.description = "A simple database agnostic import/export app to transfer data to/from a remote database."
-    s.authors = ["Ricardo Chimal, Jr."]
-
-    s.rubygems_version = %q{1.3.5}
-
-    s.add_dependency 'json_pure', '>= 1.2.0', '< 1.5.0'
-    s.add_dependency 'sinatra', '~> 1.0.0'
-    s.add_dependency 'rest-client', '>= 1.4.0', '< 1.7.0'
-    s.add_dependency 'sequel', '~> 3.17.0'
-    s.add_dependency 'sqlite3-ruby', '~> 1.2'
-    s.add_dependency 'rack', '>= 1.0.1'
-
-    s.rubyforge_project = "taps"
-
-    s.files = FileList['spec/*.rb'] + FileList['lib/**/*.rb'] + ['README.rdoc', 'LICENSE', 'VERSION.yml', 'Rakefile'] + FileList['bin/*']
-    s.executables = ['taps', 'schema']
-  end
-rescue LoadError => e
-  if e.message =~ /jeweler/
-    puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
-  else
-    puts e.message + ' -- while loading jeweler.'
-  end
-end
-
-begin
   require 'rake/rdoctask'
   Rake::RDocTask.new do |rdoc|
     rdoc.rdoc_dir = 'rdoc'
