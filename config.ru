@@ -1,5 +1,5 @@
 require 'rubygems'
-
+require 'bundler/setup'
 require 'extlib'
 
 $:.unshift File.dirname(__FILE__) + '/lib'
