@@ -12,14 +12,21 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
+    bacon (1.1.0)
     daemons (1.1.0)
     eventmachine (0.12.10)
     extlib (0.9.15)
     json_pure (1.4.6)
     mime-types (1.16)
+    mocha (0.9.8)
+      rake
     mysql (2.8.1)
     pg (0.9.0)
     rack (1.2.1)
+    rack-test (0.5.7)
+      rack (>= 1.0)
+    rake (0.8.7)
+    rcov (0.9.9)
     rest-client (1.6.1)
       mime-types (>= 1.16)
     sequel (3.17.0)
@@ -35,11 +42,16 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bacon
   extlib (= 0.9.15)
   json_pure (>= 1.2.0, < 1.5.0)
+  mocha
   mysql (= 2.8.1)
   pg (= 0.9.0)
   rack (>= 1.0.1)
+  rack-test
+  rake
+  rcov
   rest-client (>= 1.4.0, < 1.7.0)
   sequel (~> 3.17.0)
   sinatra (~> 1.0.0)

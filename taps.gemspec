@@ -19,5 +19,11 @@ Gem::Specification.new do |gem|
   gem.add_dependency "sequel",       "~> 3.17.0"
   gem.add_dependency "sinatra",      "~> 1.0.0"
   gem.add_dependency "sqlite3-ruby", "~> 1.2"
+
+  gem.add_development_dependency "bacon"
+  gem.add_development_dependency "mocha"
+  gem.add_development_dependency "rack-test"
+  gem.add_development_dependency "rake"
+  gem.add_development_dependency "rcov"
 end
 
