@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     taps (0.3.14)
-      json_pure (>= 1.2.0, < 1.5.0)
+      json (~> 1.4.6)
       rack (>= 1.0.1)
       rest-client (>= 1.4.0, < 1.7.0)
       sequel (~> 3.17.0)
@@ -44,7 +44,7 @@ PLATFORMS
 DEPENDENCIES
   bacon
   extlib (= 0.9.15)
-  json_pure (>= 1.2.0, < 1.5.0)
+  json (~> 1.4.6)
   mocha
   mysql (= 2.8.1)
   pg (= 0.9.0)
