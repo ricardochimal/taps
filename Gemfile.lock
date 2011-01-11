@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    taps (0.3.14)
+    taps (0.3.15)
       json (~> 1.4.6)
       rack (>= 1.0.1)
       rest-client (>= 1.4.0, < 1.7.0)
@@ -16,7 +16,7 @@ GEM
     daemons (1.1.0)
     eventmachine (0.12.10)
     extlib (0.9.15)
-    json_pure (1.4.6)
+    json (1.4.6)
     mime-types (1.16)
     mocha (0.9.8)
       rake
