@@ -1,6 +1,5 @@
 require 'sequel'
 require 'sqlite3'
-require 'yaml'
 require 'taps/version'
 
 Sequel.datetime_class = DateTime
