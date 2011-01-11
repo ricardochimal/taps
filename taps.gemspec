@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.description = "A simple database agnostic import/export app to transfer data to/from a remote database."
   gem.executables = %w( taps schema )
 
-  gem.files = Dir["**/*"].select { |d| d =~ %r{^(README|bin/|data/|ext/|lib/|spec/|test/)} }
+  gem.files = Dir["**/*"].select { |d| d =~ %r{^(README|VERSION|bin/|data/|ext/|lib/|spec/|test/)} }
 
   gem.add_dependency "json",         "~> 1.4.6"
   gem.add_dependency "rack",         ">= 1.0.1"
