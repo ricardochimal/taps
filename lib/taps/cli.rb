@@ -137,6 +137,7 @@ EOHELP
         r_tables = v.collect { |t| "^#{t}$" }.join("|")
         opts[:table_filter] = "(#{r_tables})"
       end
+      o.on("-e", "--exclude_tables=A,B,C", Array, "Shortcut to exclude a list of tables") {|v| opts[:exclude_tables] = v}
       o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
       o.parse!(argv)
 
