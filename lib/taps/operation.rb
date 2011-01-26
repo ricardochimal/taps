@@ -36,20 +36,25 @@ class Operation
   def table_filter
     opts[:table_filter]
   end
+  
+  def exclude_tables
+    opts[:exclude_tables] || []
+  end
 
   def apply_table_filter(tables)
-    return tables unless table_filter
-    re = Regexp.new(table_filter)
+    return tables unless table_filter || exclude_tables
+    
+    re = table_filter ? Regexp.new(table_filter) : nil
     if tables.kind_of?(Hash)
       ntables = {}
       tables.each do |t, d|
-        unless re.match(t.to_s).nil?
+        if !exclude_tables.include?(t.to_s) && (!re || !re.match(t.to_s).nil?)
           ntables[t] = d
         end
       end
       ntables
     else
-      tables.reject { |t| re.match(t.to_s).nil? }
+      tables.reject { |t| exclude_tables.include?(t.to_s) || (re && re.match(t.to_s).nil?) }
     end
   end
 
