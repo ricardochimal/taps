@@ -29,6 +29,11 @@ or when you want to transfer a list of tables
 or when you want to transfer tables that start with a word
 
   $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --filter '^log_'
+  
+or when you want to transfer all tables except a list of given tables
+
+$ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --exclude_tables logs,tags
+
 
 == Known Issues
 
