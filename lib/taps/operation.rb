@@ -29,6 +29,10 @@ class Operation
     "op"
   end
 
+  def skip_schema?
+    !!opts[:no_schema]
+  end
+
   def indexes_first?
     !!opts[:indexes_first]
   end
@@ -241,7 +245,7 @@ class Pull < Operation
   def run
     catch_errors do
       unless resuming?
-        pull_schema unless opts[:skip_schema]
+        pull_schema unless skip_schema?
         pull_indexes if indexes_first?
       end
       setup_signal_trap
@@ -400,13 +404,13 @@ class Push < Operation
   def run
     catch_errors do
       unless resuming?
-        push_schema unless opts[:skip_schema]
-        push_indexes if indexes_first?
+        push_schema unless skip_schema?
+        push_indexes if indexes_first? && !skip_schema?
       end
       setup_signal_trap
       push_partial_data if resuming?
       push_data
-      push_indexes unless indexes_first?
+      push_indexes unless indexes_first? || skip_schema?
       push_reset_sequences
     end
   end
