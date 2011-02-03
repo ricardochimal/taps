@@ -128,6 +128,7 @@ EOHELP
         o.define_head "Push a database to a taps server"
       end
 
+      o.on(      '--no-schema', "Don't transfer the schema, just data") {|v| opts[:no_schema] = true }
       o.on("-i", "--indexes-first", "Transfer indexes first before data") { |v| opts[:indexes_first] = true }
       o.on("-r", "--resume=file", "Resume a Taps Session from a stored file") { |v| opts[:resume_filename] = v }
       o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
