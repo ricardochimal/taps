@@ -10,6 +10,7 @@ GEM
     mocha (0.9.8)
       rake
     mysql (2.8.1)
+    mysql2 (0.2.6)
     pg (0.9.0)
     rack (1.2.1)
     rack-test (0.5.7)
@@ -36,6 +37,7 @@ DEPENDENCIES
   json (~> 1.4.6)
   mocha
   mysql (= 2.8.1)
+  mysql2 (= 0.2.6)
   pg (= 0.9.0)
   rack (>= 1.0.1)
   rack-test
