@@ -485,29 +485,40 @@ class Push < Operation
 
       begin
         chunksize = Taps::Utils.calculate_chunksize(chunksize) do |c|
-          stream.state[:chunksize] = c
-          encoded_data, row_size, elapsed_time = stream.fetch
+          stream.state[:chunksize] = c.to_i
+          encoded_data, row_size, elapsed_time = nil
+          d1 = c.time_delta do
+            encoded_data, row_size, elapsed_time = stream.fetch
+          end
           break if stream.complete?
 
-          data = {
-            :state => stream.to_hash,
-            :checksum => Taps::Utils.checksum(encoded_data).to_s
-          }
+          data = nil
+          d2 = c.time_delta do
+            data = {
+              :state => stream.to_hash,
+              :checksum => Taps::Utils.checksum(encoded_data).to_s
+            }
+          end
 
           begin
-            content, content_type = Taps::Multipart.create do |r|
-              r.attach :name => :encoded_data,
-                :payload => encoded_data,
-                :content_type => 'application/octet-stream'
-              r.attach :name => :json,
-                :payload => data.to_json,
-                :content_type => 'application/json'
+            content, content_type = nil
+            d3 = c.time_delta do
+              content, content_type = Taps::Multipart.create do |r|
+                r.attach :name => :encoded_data,
+                  :payload => encoded_data,
+                  :content_type => 'application/octet-stream'
+                r.attach :name => :json,
+                  :payload => data.to_json,
+                  :content_type => 'application/json'
+              end
             end
             session_resource['push/table'].post(content, http_headers(:content_type => content_type))
             self.stream_state = stream.to_hash
           rescue => e
             Taps::Utils.reraise_server_exception(e)
           end
+
+          c.idle_secs = (d1 + d2 + d3)
 
           elapsed_time
         end

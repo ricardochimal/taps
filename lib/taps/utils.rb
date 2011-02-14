@@ -2,8 +2,10 @@ require 'zlib'
 require 'stringio'
 require 'time'
 require 'tempfile'
+require 'rest_client'
 
 require 'taps/errors'
+require 'taps/chunksize'
 
 module Taps
 module Utils
@@ -93,42 +95,23 @@ Data   : #{data}
   end
 
   def calculate_chunksize(old_chunksize)
-    chunksize = old_chunksize
+    c = Taps::Chunksize.new(old_chunksize)
 
-    retries = 0
-    time_in_db = 0
     begin
-      t1 = Time.now
-      time_in_db = yield chunksize
-      time_in_db = time_in_db.to_f rescue 0
+      c.start_time = Time.now
+      c.time_in_db = yield c
     rescue Errno::EPIPE, RestClient::RequestFailed, RestClient::RequestTimeout
-      retries += 1
-      raise if retries > 2
+      c.retries += 1
+      raise if c.retries > 2
 
       # we got disconnected, the chunksize could be too large
-      # on first retry change to 10, on successive retries go down to 1
-      chunksize = (retries == 1) ? 10 : 1
-
+      # reset the chunksize based on the number of retries
+      c.reset_chunksize
       retry
     end
 
-    t2 = Time.now
-
-    diff = t2 - t1 - time_in_db
-
-    new_chunksize = if retries > 0
-      chunksize
-    elsif diff > 3.0
-      (chunksize / 3).ceil
-    elsif diff > 1.1
-      chunksize - 100
-    elsif diff < 0.8
-      chunksize * 2
-    else
-      chunksize + 100
-    end
-    new_chunksize = 1 if new_chunksize < 1
-    new_chunksize
+    c.end_time = Time.now
+    c.calc_new_chunksize
   end
 
   def load_schema(database_url, schema_data)
