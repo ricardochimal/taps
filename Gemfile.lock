@@ -19,7 +19,7 @@ GEM
     rcov (0.9.9)
     rest-client (1.6.1)
       mime-types (>= 1.16)
-    sequel (3.17.0)
+    sequel (3.20.0)
     sinatra (1.0)
       rack (>= 1.0)
     sqlite3-ruby (1.3.2)
@@ -44,7 +44,7 @@ DEPENDENCIES
   rake
   rcov
   rest-client (>= 1.4.0, < 1.7.0)
-  sequel (~> 3.17.0)
+  sequel (~> 3.20.0)
   sinatra (~> 1.0.0)
   sqlite3-ruby (~> 1.2)
   thin (> 1.2.0)
