@@ -36,14 +36,14 @@ class Operation
   def table_filter
     opts[:table_filter]
   end
-  
+
   def exclude_tables
     opts[:exclude_tables] || []
   end
 
   def apply_table_filter(tables)
     return tables unless table_filter || exclude_tables
-    
+
     re = table_filter ? Regexp.new(table_filter) : nil
     if tables.kind_of?(Hash)
       ntables = {}
