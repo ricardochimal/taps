@@ -128,7 +128,7 @@ EOHELP
         o.define_head "Push a database to a taps server"
       end
 
-      o.on(      '--no-schema', "Don't transfer the schema, just data") {|v| opts[:no_schema] = true }
+      o.on("-s", "--skip-schema", "Don't transfer the schema, just data") { |v| opts[:skip_schema] = true }
       o.on("-i", "--indexes-first", "Transfer indexes first before data") { |v| opts[:indexes_first] = true }
       o.on("-r", "--resume=file", "Resume a Taps Session from a stored file") { |v| opts[:resume_filename] = v }
       o.on("-c", "--chunksize=N", "Initial Chunksize") { |v| opts[:default_chunksize] = (v.to_i < 10 ? 10 : v.to_i) }
@@ -139,7 +139,6 @@ EOHELP
         opts[:table_filter] = "(#{r_tables})"
       end
       o.on("-e", "--exclude_tables=A,B,C", Array, "Shortcut to exclude a list of tables") { |v| opts[:exclude_tables] = v }
-      o.on("-s", "--skip-schema", "Skip schema migration") { |v| opts[:skip_schema] = true }
       o.on("-d", "--debug", "Enable Debug Messages") { |v| opts[:debug] = true }
       o.parse!(argv)
 
