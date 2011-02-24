@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
 
   gem.files = Dir["**/*"].select { |d| d =~ %r{^(README|VERSION|bin/|data/|ext/|lib/|spec/|test/)} }
 
-  gem.add_dependency "json",         "~> 1.4.6"
+  gem.add_dependency "json",         "~> 1.5.1"
   gem.add_dependency "rack",         ">= 1.0.1"
   gem.add_dependency "rest-client",  ">= 1.4.0", "< 1.7.0"
   gem.add_dependency "sequel",       "~> 3.17.0"
