@@ -45,7 +45,7 @@ module Utils
     table  = opts[:table]
 
     max_lengths = schema.inject({}) do |hash, (column, meta)|
-      if meta[:db_type] =~ /^\w+\((\d+)\)/
+      if meta[:db_type] =~ /^varchar\((\d+)\)/
         hash.update(column => $1.to_i)
       end
       hash
