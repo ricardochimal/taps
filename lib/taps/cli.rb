@@ -1,9 +1,9 @@
 require 'optparse'
 require 'tempfile'
-require 'json'
 require 'taps/monkey'
 require 'taps/config'
 require 'taps/log'
+require 'taps/json'
 
 Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || begin
   # this is dirty but it solves a weird problem where the tempfile disappears mid-process

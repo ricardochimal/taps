@@ -1,7 +1,7 @@
 require 'restclient'
 require 'rack/utils'
-require 'json'
 require 'stringio'
+require 'taps/json'
 
 module Taps
 class Multipart
