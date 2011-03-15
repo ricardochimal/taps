@@ -1,8 +1,13 @@
+require 'hoptoad_notifier'
 require 'sinatra/base'
 require 'taps/config'
 require 'taps/utils'
 require 'taps/db_session'
 require 'taps/data_stream'
+
+HoptoadNotifier.configure do |config|
+  config.api_key = ENV["HOPTOAD_API_KEY"]
+end
 
 module Taps
 class Server < Sinatra::Base
@@ -13,6 +18,7 @@ class Server < Sinatra::Base
   use Rack::Deflater unless ENV['NO_DEFLATE']
 
   error do
+    HoptoadNotifier.notify(e)
     e = request.env['sinatra.error']
     if e.kind_of?(Taps::BaseError)
       content_type "application/json"

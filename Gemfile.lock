@@ -1,10 +1,15 @@
 GEM
   remote: http://rubygems.org/
   specs:
+    activesupport (3.0.5)
     bacon (1.1.0)
+    builder (3.0.0)
     daemons (1.1.0)
     eventmachine (0.12.10)
     extlib (0.9.15)
+    hoptoad_notifier (2.4.7)
+      activesupport
+      builder
     json (1.5.1)
     mime-types (1.16)
     mocha (0.9.8)
@@ -34,6 +39,7 @@ PLATFORMS
 DEPENDENCIES
   bacon
   extlib (= 0.9.15)
+  hoptoad_notifier
   json (~> 1.5.1)
   mocha
   mysql (= 2.8.1)

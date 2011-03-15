@@ -22,6 +22,7 @@ end
 
 # server-specific dependencies
 group :server do
+  gem "hoptoad_notifier"
   gem "extlib", "0.9.15"
   gem "mysql",  "2.8.1"
   gem "mysql2", "0.2.6"
