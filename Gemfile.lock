@@ -10,7 +10,6 @@ GEM
     hoptoad_notifier (2.4.7)
       activesupport
       builder
-    json (1.5.1)
     mime-types (1.16)
     mocha (0.9.8)
       rake
@@ -37,10 +36,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  activesupport (>= 2.1.0)
   bacon
   extlib (= 0.9.15)
   hoptoad_notifier
-  json (~> 1.5.1)
   mocha
   mysql (= 2.8.1)
   mysql2 (= 0.2.6)

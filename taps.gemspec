@@ -13,11 +13,12 @@ Gem::Specification.new do |gem|
 
   gem.files = Dir["**/*"].select { |d| d =~ %r{^(README|VERSION|bin/|data/|ext/|lib/|spec/|test/)} }
 
-  gem.add_dependency "rack",         ">= 1.0.1"
-  gem.add_dependency "rest-client",  ">= 1.4.0", "< 1.7.0"
-  gem.add_dependency "sequel",       "~> 3.20.0"
-  gem.add_dependency "sinatra",      "~> 1.0.0"
-  gem.add_dependency "sqlite3-ruby", "~> 1.2"
+  gem.add_dependency "activesupport", ">= 2.1.0"
+  gem.add_dependency "rack",          ">= 1.0.1"
+  gem.add_dependency "rest-client",   ">= 1.4.0", "< 1.7.0"
+  gem.add_dependency "sequel",        "~> 3.20.0"
+  gem.add_dependency "sinatra",       "~> 1.0.0"
+  gem.add_dependency "sqlite3-ruby",  "~> 1.2"
 
   gem.add_development_dependency "bacon"
   gem.add_development_dependency "mocha"
