@@ -343,7 +343,7 @@ class Pull < Operation
     retries = 0
     max_retries = 10
     begin
-      tables = JSON.load(session_resource['pull/table_names'].get(http_headers).to_s)
+      tables = JSON.parse(session_resource['pull/table_names'].get(http_headers).to_s)
     rescue RestClient::Exception
       retries += 1
       retry if retries <= max_retries
