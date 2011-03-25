@@ -30,8 +30,8 @@ class Server < Sinatra::Base
 
   before do
     major, minor, patch = request.env['HTTP_TAPS_VERSION'].split('.') rescue []
-    unless "#{major}.#{minor}" == Taps.compatible_version && patch.to_i >= 14
-      halt 417, "Taps >= v#{Taps.compatible_version}.14 is required for this server"
+    unless "#{major}.#{minor}" == Taps.compatible_version && patch.to_i >= 20
+      halt 417, "Taps >= v#{Taps.compatible_version}.20 is required for this server"
     end
   end
 
