@@ -6,14 +6,11 @@ A simple database agnostic import/export app to transfer data to/from a remote d
 
 Here's how you start a taps server
 
-  $ git clone git://github.com/ricardochimal/taps.git
-  $ cd taps
-  $ bundle install
-  $ bundle exec bin/taps server postgres://localdbuser:localdbpass@localhost/dbname httpuser httppassword
+  $ taps server postgres://localdbuser:localdbpass@localhost/dbname httpuser httppassword
 
 You can also specify an encoding in the database url
 
-  $ bundle exec bin/taps server mysql://localdbuser:localdbpass@localhost/dbname?encoding=latin1 httpuser httppassword
+  $ taps server mysql://localdbuser:localdbpass@localhost/dbname?encoding=latin1 httpuser httppassword
 
 == Usage: Client
 
