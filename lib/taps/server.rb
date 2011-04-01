@@ -12,6 +12,9 @@ class Server < Sinatra::Base
 
   use Rack::Deflater unless ENV['NO_DEFLATE']
 
+  set :raise_errors => false
+  set :show_exceptions => false
+
   error do
     puts "ERROR: #{e.class}: #{e.message}"
     e = request.env['sinatra.error']
