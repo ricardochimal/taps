@@ -16,8 +16,8 @@ class Server < Sinatra::Base
   set :show_exceptions => false
 
   error do
-    puts "ERROR: #{e.class}: #{e.message}"
     e = request.env['sinatra.error']
+    puts "ERROR: #{e.class}: #{e.message}"
     begin
       require 'hoptoad_notifier'
       HoptoadNotifier.configure do |config|
