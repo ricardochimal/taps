@@ -171,7 +171,7 @@ Data   : #{data}
   def reraise_server_exception(e)
     if e.kind_of?(RestClient::Exception)
       if e.respond_to?(:response) && e.response.headers[:content_type] == 'application/json'
-        json = JSON.parse(e.response.to_s)
+        json = OkJson.decode(e.response.to_s)
         klass = eval(json['error_class']) rescue nil
         raise klass.new(json['error_message'], :backtrace => json['error_backtrace']) if klass
       end

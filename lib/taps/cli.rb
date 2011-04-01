@@ -3,7 +3,7 @@ require 'tempfile'
 require 'taps/monkey'
 require 'taps/config'
 require 'taps/log'
-require 'taps/json'
+require 'vendor/okjson'
 
 Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || begin
   # this is dirty but it solves a weird problem where the tempfile disappears mid-process
@@ -172,7 +172,7 @@ EOHELP
   end
 
   def clientresumexfer(method, opts)
-    session = JSON.parse(File.read(opts.delete(:resume_filename)))
+    session = OkJson.parse(File.read(opts.delete(:resume_filename)))
     session.symbolize_recursively!
 
     database_url = opts.delete(:database_url)

@@ -70,7 +70,7 @@ class Operation
     file = "#{file_prefix}_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
     puts "\nSaving session to #{file}.."
     File.open(file, 'w') do |f|
-      f.write(to_hash.to_json)
+      f.write(OkJson.encode(to_hash))
     end
   end
 
@@ -343,7 +343,7 @@ class Pull < Operation
     retries = 0
     max_retries = 10
     begin
-      tables = JSON.parse(session_resource['pull/table_names'].get(http_headers).to_s)
+      tables = OkJson.decode(session_resource['pull/table_names'].get(http_headers).to_s)
     rescue RestClient::Exception
       retries += 1
       retry if retries <= max_retries
@@ -370,7 +370,7 @@ class Pull < Operation
   def pull_indexes
     puts "Receiving indexes"
 
-    idxs = JSON.parse(session_resource['pull/indexes'].get(http_headers).to_s)
+    idxs = OkJson.decode(session_resource['pull/indexes'].get(http_headers).to_s)
 
     apply_table_filter(idxs).each do |table, indexes|
       next unless indexes.size > 0
@@ -416,7 +416,7 @@ class Push < Operation
   end
 
   def push_indexes
-    idxs = JSON.parse(Taps::Utils.schema_bin(:indexes_individual, database_url))
+    idxs = OkJson.decode(Taps::Utils.schema_bin(:indexes_individual, database_url))
 
     return unless idxs.size > 0
 
@@ -512,7 +512,7 @@ class Push < Operation
                   :payload => encoded_data,
                   :content_type => 'application/octet-stream'
                 r.attach :name => :json,
-                  :payload => data.to_json,
+                  :payload => OkJson.encode(data),
                   :content_type => 'application/json'
               end
             end

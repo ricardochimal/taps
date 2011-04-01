@@ -26,7 +26,7 @@ class Server < Sinatra::Base
     end
     if e.kind_of?(Taps::BaseError)
       content_type "application/json"
-      halt 412, { 'error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n") }.to_json
+      halt 412, OkJson.encode({ 'error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n") })
     else
       "Taps Server Error: #{e}\n#{e.backtrace}"
     end
@@ -73,7 +73,7 @@ class Server < Sinatra::Base
     end
 
     content_type 'application/json'
-    { :state => stream.to_hash }.to_json
+    OkJson.encode({ :state => stream.to_hash })
   end
 
   post '/sessions/:key/push/table' do
@@ -142,7 +142,7 @@ class Server < Sinatra::Base
     end
 
     content_type 'application/json'
-    tables.to_json
+    OkJson.encode(tables)
   end
 
   post '/sessions/:key/pull/table_count' do
@@ -164,13 +164,13 @@ class Server < Sinatra::Base
     stream = nil
 
     session.conn do |db|
-      state = JSON.parse(params[:state]).symbolize_keys
+      state = OkJson.decode(params[:state]).symbolize_keys
       stream = Taps::DataStream.factory(db, state)
       encoded_data = stream.fetch.first
     end
 
     checksum = Taps::Utils.checksum(encoded_data).to_s
-    json = { :checksum => checksum, :state => stream.to_hash }.to_json
+    json = OkJson.encode({ :checksum => checksum, :state => stream.to_hash })
 
     content, content_type_value = Taps::Multipart.create do |r|
       r.attach :name => :encoded_data,

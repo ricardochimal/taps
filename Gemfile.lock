@@ -36,7 +36,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport (>= 2.1.0)
   bacon
   extlib (= 0.9.15)
   hoptoad_notifier

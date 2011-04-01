@@ -3,7 +3,7 @@ require 'taps/multipart'
 require 'taps/utils'
 require 'taps/log'
 require 'taps/errors'
-require 'taps/json'
+require 'vendor/okjson'
 
 module Taps
 
@@ -49,7 +49,7 @@ class DataStream
   end
 
   def to_json
-    to_hash.to_json
+    OkJson.encode(to_hash)
   end
 
   def string_columns
@@ -167,20 +167,20 @@ class DataStream
     log.debug "DataStream#fetch_from_resource state -> #{state.inspect}"
     state[:chunksize] = Taps::Utils.calculate_chunksize(state[:chunksize]) do |c|
       state[:chunksize] = c.to_i
-      res = resource.post({:state => self.to_json}, headers)
+      res = resource.post({:state => OkJson.encode(self)}, headers)
     end
 
     begin
       params = Taps::Multipart.parse(res)
       params[:json] = self.class.parse_json(params[:json]) if params.has_key?(:json)
       return params
-    rescue JSON::Parser
-      raise Taps::CorruptedData.new("Invalid JSON Received")
+    rescue OkJson::Parser
+      raise Taps::CorruptedData.new("Invalid OkJson Received")
     end
   end
 
   def self.parse_json(json)
-    hash = JSON.parse(json).symbolize_keys
+    hash = OkJson.parse(json).symbolize_keys
     hash[:state].symbolize_keys! if hash.has_key?(:state)
     hash
   end
@@ -219,7 +219,7 @@ not enforce maximum values on integer types.
   end
 
   def verify_remote_stream(resource, headers)
-    json_raw = resource.post({:state => self.to_json}, headers).to_s
+    json_raw = resource.post({:state => OkJson.encode(self)}, headers).to_s
     json = self.class.parse_json(json_raw)
 
     self.class.new(db, json[:state])

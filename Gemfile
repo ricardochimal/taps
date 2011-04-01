@@ -5,7 +5,6 @@ source "http://rubygems.org"
 
 # manually load the gem's dependencies for now until
 # bundler version on Heroku is upgraded
-gem "activesupport", ">= 2.1.0"
 gem "rack",          ">= 1.0.1"
 gem "rest-client",   ">= 1.4.0", "< 1.7.0"
 gem "sequel",        "~> 3.20.0"

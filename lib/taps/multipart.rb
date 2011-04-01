@@ -1,7 +1,7 @@
 require 'restclient'
 require 'rack/utils'
 require 'stringio'
-require 'taps/json'
+require 'vendor/okjson'
 
 module Taps
 class Multipart
