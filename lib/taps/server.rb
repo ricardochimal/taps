@@ -13,6 +13,7 @@ class Server < Sinatra::Base
   use Rack::Deflater unless ENV['NO_DEFLATE']
 
   error do
+    puts "ERROR: #{e.class}: #{e.message}"
     e = request.env['sinatra.error']
     begin
       require 'hoptoad_notifier'
@@ -20,6 +21,7 @@ class Server < Sinatra::Base
         config.api_key = ENV["HOPTOAD_API_KEY"]
       end
       HoptoadNotifier.notify(e)
+      puts "  notified Hoptoad"
     rescue LoadError
       puts "An error occurred but Hoptoad was not notified. To use Hoptoad, please"
       puts "install the 'hoptoad_notifier' gem and set ENV[\"HOPTOAD_API_KEY\"]"
