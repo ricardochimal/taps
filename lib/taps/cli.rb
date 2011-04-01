@@ -172,7 +172,7 @@ EOHELP
   end
 
   def clientresumexfer(method, opts)
-    session = OkJson.parse(File.read(opts.delete(:resume_filename)))
+    session = OkJson.decode(File.read(opts.delete(:resume_filename)))
     session.symbolize_recursively!
 
     database_url = opts.delete(:database_url)

@@ -180,7 +180,7 @@ class DataStream
   end
 
   def self.parse_json(json)
-    hash = OkJson.parse(json).symbolize_keys
+    hash = OkJson.decode(json).symbolize_keys
     hash[:state].symbolize_keys! if hash.has_key?(:state)
     hash
   end
