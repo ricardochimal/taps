@@ -1,9 +1,6 @@
 class Hash
   def symbolize_keys
-    inject({}) do |options, (key, value)|
-      options[(key.to_sym rescue key) || key] = value
-      options
-    end
+    Hash[ map { |(k,v)| [(k.to_sym rescue k) || k, v] } ]
   end
 
   def symbolize_keys!
