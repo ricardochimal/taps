@@ -167,7 +167,7 @@ class DataStream
     log.debug "DataStream#fetch_from_resource state -> #{state.inspect}"
     state[:chunksize] = Taps::Utils.calculate_chunksize(state[:chunksize]) do |c|
       state[:chunksize] = c.to_i
-      res = resource.post({:state => OkJson.encode(self)}, headers)
+      res = resource.post({:state => OkJson.encode(self.to_hash)}, headers)
     end
 
     begin
