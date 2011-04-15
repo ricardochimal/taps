@@ -5,11 +5,11 @@ source "http://rubygems.org"
 
 # manually load the gem's dependencies for now until
 # bundler version on Heroku is upgraded
-gem "rack",          ">= 1.0.1"
-gem "rest-client",   ">= 1.4.0", "< 1.7.0"
-gem "sequel",        "~> 3.20.0"
-gem "sinatra",       "~> 1.0.0"
-gem "sqlite3-ruby" , "~> 1.2"
+gem "rack"
+gem "rest-client"
+gem "sequel"
+gem "sinatra"
+gem "sqlite3-ruby"
 
 group :development do
   gem "bacon"
