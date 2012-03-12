@@ -31,5 +31,10 @@ describe Taps::Server do
     get('/', { }, { 'HTTP_AUTHORIZATION' => @auth_header, 'HTTP_TAPS_VERSION' => '0.0.1' })
     last_response.status.should == 417
   end
+
+  it "allows healthcheck to be accessed w/o HTTP_TAPS_VERSION" do
+    get('/health', { }, { 'HTTP_AUTHORIZATION' => @auth_header })
+    last_response.status.should == 200
+  end
 end
 
