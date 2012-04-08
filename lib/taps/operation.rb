@@ -213,6 +213,10 @@ class Operation
         puts "!!! Caught Server Exception"
         puts "HTTP CODE: #{e.http_code}"
         puts "#{e.response.to_s}"
+        if e.response.to_s['time zone displacement out of range']
+          puts "Are you using the same Ruby version on client and server?"
+          puts "Heroku Bamboo and Cedar use 1.9.2, you are using #{RUBY_VERSION}"
+        end
         exit(1)
       else
         raise
