@@ -139,8 +139,8 @@ Data   : #{data}
 
   def single_integer_primary_key(db, table)
     table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
-    keys = db.schema(table).select { |c| c[1][:primary_key] and c[1][:type] == :integer }
-    not keys.nil? and keys.size == 1
+    keys = db.schema(table).select { |c| c[1][:primary_key] }
+    not keys.nil? and keys.size == 1 and keys[0][1][:type] == :integer
   end
 
   def order_by(db, table)
