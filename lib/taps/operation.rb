@@ -355,7 +355,7 @@ class Pull < Operation
     apply_table_filter(tables).each do |table_name|
       retries = 0
       begin
-        count = session_resource['pull/table_count'].post({:table => table_name}, http_headers).to_s.to_i
+        count = Integer(session_resource['pull/table_count'].post({:table => table_name}, http_headers).to_s)
         data[table_name] = count
       rescue RestClient::Exception
         retries += 1
