@@ -1,3 +1,5 @@
+require 'simplecov'
+
 task :build do
   gemspec = Gem::Specification.load("taps.gemspec")
   target  = "pkg/#{gemspec.file_name}"
@@ -8,7 +10,7 @@ task :build do
 end
 
 begin
-  require 'rake/rdoctask'
+  require 'rdoc/task'
   Rake::RDocTask.new do |rdoc|
     rdoc.rdoc_dir = 'rdoc'
     rdoc.title = 'taps'
@@ -20,19 +22,9 @@ rescue LoadError
    puts "Rdoc is not available"
 end
 
-begin
-  require 'rcov/rcovtask'
-  Rcov::RcovTask.new do |t|
-    t.libs << 'spec'
-    t.test_files = FileList['spec/*_spec.rb']
-    t.verbose = true
-  end
-rescue LoadError
-  puts "RCov is not available. In order to run rcov, you must: sudo gem install rcov"
-end
-
 desc "Run all specs; requires the bacon gem"
 task :spec do
+  SimpleCov.start if ENV["COVERAGE"]
   if `which bacon`.empty?
     puts "bacon is not available. In order to run the specs, you must: sudo gem install bacon."
   else
