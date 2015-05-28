@@ -14,7 +14,7 @@ module Utils
   def windows?
     return @windows if defined?(@windows)
     require 'rbconfig'
-    @windows = !!(::Config::CONFIG['host_os'] =~ /mswin|mingw/)
+    @windows = !!(RbConfig::CONFIG['host_os'] =~ /mswin|mingw/)
   end
 
   def bin(cmd)
