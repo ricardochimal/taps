@@ -378,7 +378,8 @@ class Pull < Operation
       progress = ProgressBar.new(table, indexes.size)
       indexes.each do |idx|
         output = Taps::Utils.load_indexes(database_url, idx)
-        puts output if output
+        output = output.to_s.strip
+        puts output unless output.empty?
         progress.inc(1)
       end
       progress.finish
@@ -389,7 +390,8 @@ class Pull < Operation
     puts "Resetting sequences"
 
     output = Taps::Utils.schema_bin(:reset_db_sequences, database_url)
-    puts output if output
+    output = output.to_s.strip
+    puts output unless output.empty?
   end
 end
 
