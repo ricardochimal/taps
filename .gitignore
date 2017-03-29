@@ -3,3 +3,4 @@
 .bundle
 pkg
 taps-*.gem
+Gemfile.lock
