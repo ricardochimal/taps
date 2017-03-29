@@ -17,18 +17,9 @@ class Server < Sinatra::Base
 
   error do
     e = request.env['sinatra.error']
+
     puts "ERROR: #{e.class}: #{e.message}"
-    begin
-      require 'hoptoad_notifier'
-      HoptoadNotifier.configure do |config|
-        config.api_key = ENV["HOPTOAD_API_KEY"]
-      end
-      HoptoadNotifier.notify(e)
-      puts "  notified Hoptoad"
-    rescue LoadError
-      puts "An error occurred but Hoptoad was not notified. To use Hoptoad, please"
-      puts "install the 'hoptoad_notifier' gem and set ENV[\"HOPTOAD_API_KEY\"]"
-    end
+
     if e.kind_of?(Taps::BaseError)
       content_type "application/json"
       halt 412, ::OkJson.encode({ 'error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n") })
