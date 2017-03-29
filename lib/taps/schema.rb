@@ -18,7 +18,7 @@ module Schema
       <<END_MIG
 Class.new(Sequel::Migration) do
   def up
-    #{db.dump_table_schema(table.identifier, :indexes => false)}
+    #{db.extension(:schema_dumper).dump_table_schema(Sequel.identifier(table), :indexes => false)}
   end
 
   def down
@@ -39,7 +39,7 @@ END_MIG
     Sequel.connect(database_url) do |db|
       tables = db.tables
       tables.each do |table|
-        idxs[table] = db.send(:dump_table_indexes, table, :add_index, {}).split("\n")
+        idxs[table] = db.extension(:schema_dumper).send(:dump_table_indexes, table, :add_index, {}).split("\n")
       end
     end
 

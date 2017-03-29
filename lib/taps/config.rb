@@ -2,6 +2,8 @@ require 'sequel'
 require 'taps/version'
 
 Sequel.datetime_class = DateTime
+Sequel.extension :core_extensions
+Sequel.extension :schema_dumper
 
 module Taps
   def self.exiting=(val)
