@@ -6,8 +6,8 @@ Gem::Specification.new do |gem|
   gem.version     = Taps.version
   gem.author      = "Ricardo Chimal, Jr."
   gem.email       = "ricardo@heroku.com"
-  gem.homepage    = "http://github.com/ricardochimal/taps"
-  gem.summary     = "simple database import/export app"
+  gem.homepage    = "http://github.com/betastream/taps"
+  gem.summary     = "Simple database import/export app"
   gem.description = "A simple database agnostic import/export app to transfer data to/from a remote database."
   gem.executables = %w( taps schema )
 
