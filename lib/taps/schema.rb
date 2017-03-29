@@ -54,7 +54,7 @@ end
 END_MIG
       end
     end
-    OkJson.encode(idxs)
+    ::OkJson.encode(idxs)
   end
 
   def load(database_url, schema)
