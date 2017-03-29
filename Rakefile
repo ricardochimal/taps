@@ -1,14 +1,5 @@
 require 'simplecov'
 
-task :build do
-  gemspec = Gem::Specification.load("taps.gemspec")
-  target  = "pkg/#{gemspec.file_name}"
-
-  FileUtils.mkdir_p File.dirname(target)
-  Gem::Builder.new(gemspec).build
-  FileUtils.mv gemspec.file_name, target
-end
-
 begin
   require 'rdoc/task'
   Rake::RDocTask.new do |rdoc|
