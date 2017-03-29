@@ -4,3 +4,4 @@
 pkg
 taps-*.gem
 Gemfile.lock
+*.dat
