@@ -264,7 +264,8 @@ class Pull < Operation
       schema_data = session_resource['pull/schema'].post({:table_name => table_name}, http_headers).to_s
       log.debug "Table: #{table_name}\n#{schema_data}\n"
       output = Taps::Utils.load_schema(database_url, schema_data)
-      puts output if output
+      output = output.to_s.strip
+      puts output unless output.empty?
       progress.inc(1)
     end
     progress.finish
