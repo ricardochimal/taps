@@ -26,5 +26,13 @@ describe Taps::Utils do
     ])
     Taps::Utils.incorrect_blobs(@db, :mytable).should == [:mytext]
   end
-end
 
+  it "rejects a multiple-column primary key as a single integer primary key" do
+    @db = mock("db")
+    @db.stubs(:schema).with(:pktable.identifier).returns([
+      [:id1, { :primary_key => true, :type => :integer }],
+      [:id2, { :primary_key => true, :type => :string }]
+    ])
+    Taps::Utils.single_integer_primary_key(@db, :pktable).should.be.false
+  end
+end
