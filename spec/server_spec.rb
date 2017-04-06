@@ -1,7 +1,6 @@
 require File.dirname(__FILE__) + '/base'
 
 require 'taps/server'
-
 require 'pp'
 
 describe Taps::Server do
@@ -37,4 +36,3 @@ describe Taps::Server do
     last_response.status.should == 200
   end
 end
-
