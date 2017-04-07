@@ -73,15 +73,15 @@ module Taps
 
     def help
       puts <<EOHELP
-  Options
-  =======
-  server    Start a taps database import/export server
-  pull      Pull a database from a taps server
-  push      Push a database to a taps server
-  version   Taps version
+Options
+=======
+server    Start a taps database import/export server
+pull      Pull a database from a taps server
+push      Push a database to a taps server
+version   Taps version
 
-  Add '-h' to any command to see their usage
-  EOHELP
+Add '-h' to any command to see their usage
+EOHELP
     end
 
     def serveroptparse
@@ -95,8 +95,8 @@ module Taps
         o.parse!(argv)
 
         opts[:database_url] = argv.shift
-        opts[:login] = argv.shift
-        opts[:password] = argv.shift
+        opts[:login] = argv.shift || ENV['TAPS_LOGIN']
+        opts[:password] = argv.shift || ENV['TAPS_PASSWORD']
 
         if opts[:database_url].nil?
           $stderr.puts "Missing Database URL"
