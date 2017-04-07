@@ -1,4 +1,4 @@
-= Taps -- simple database import/export app
+= Taps (2) -- simple database import/export app
 
 A simple database agnostic import/export app to transfer data to/from a remote database.
 
