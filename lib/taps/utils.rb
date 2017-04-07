@@ -57,14 +57,14 @@ module Taps
         row.each do |column, value|
           if value.to_s.length > (max_lengths[column] || value.to_s.length)
             raise Taps::InvalidData.new(<<-ERROR)
-  Detected value that exceeds the length limitation of its column. This is
-  generally due to the fact that SQLite does not enforce length restrictions.
+Detected value that exceeds the length limitation of its column. This is
+generally due to the fact that SQLite does not enforce length restrictions.
 
-  Table  : #{table}
-  Column : #{column}
-  Type   : #{schema.detect{|s| s.first == column}.last[:db_type]}
-  Value  : #{value}
-            ERROR
+Table  : #{table}
+Column : #{column}
+Type   : #{schema.detect{|s| s.first == column}.last[:db_type]}
+Value  : #{value}
+ERROR
           end
         end
         header.collect { |h| row[h] }

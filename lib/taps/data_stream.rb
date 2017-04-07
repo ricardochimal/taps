@@ -209,7 +209,7 @@ class DataStream
 \nDetected integer data that exceeds the maximum allowable size for an integer type.
 This generally occurs when importing from SQLite due to the fact that SQLite does
 not enforce maximum values on integer types.
-      ERROR
+ERROR
     else raise ex
     end
   end

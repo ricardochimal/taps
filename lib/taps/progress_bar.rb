@@ -115,7 +115,7 @@ class ProgressBar
     if @total.zero?
       100
     else
-      @current  * 100 / @total
+      @current * 100 / @total
     end
   end
 
@@ -137,10 +137,11 @@ class ProgressBar
   end
 
   def show
-    arguments = @format_arguments.map {|method|
+    arguments = @format_arguments.map do |method|
       method = sprintf("fmt_%s", method)
       send(method)
-    }
+    end
+
     line = sprintf(@format, *arguments)
 
     width = get_width
@@ -173,7 +174,8 @@ class ProgressBar
     end
   end
 
-  public
+public
+
   def clear
     @out.print "\r"
     @out.print(" " * (get_width - 1))
