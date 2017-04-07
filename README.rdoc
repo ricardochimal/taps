@@ -10,6 +10,31 @@ Renamed gem
 
   $ gem install taps2
 
+By default, Taps will attempt to create a SQLite3 database for sessions. Unless you specify a different database type, you'll need to install SQLite 3. (See _Environment Variables_ for alternative session databases.)
+
+  $ gem install sqlite3
+
+Install the gems to support databases you want to work with, such as MySQL or PostgreSQL.
+
+  $ gem install mysql2
+  $ gem install pg
+
+== Configuration: Environment Variables
+
+_All environment variables are optional._
+
+The `TAPS_DATABASE_URL` variable specifies the database URI where session data is stored on CLI or Server.
+The `DATABASE_URL` variable is a fallback (and compatible with Heroku) if `TAPS_DATABASE_URL` is not specified.
+By default, Taps will create a SQLite3 database.
+
+The `TAPS_LOGIN` and `TAPS_PASSWORD` variables are used for default Basic Authentication.
+
+The `NO_DEFAULT_DATABASE_URL` variable allows you to require a database URI be sent in the `body` of the request that initiates a Taps session. (Default behavior will use the database URI specified when starting the server.)
+
+The `NO_DUMP_MARSHAL_ERRORS` variable allows you to disable dumping of marshalled data that caused an error.
+
+The `NO_DEFLATE` variable allows you to disable gzip compression (`Rack::Deflater`) on the server.
+
 == Usage: Server
 
 Here's how you start a taps server
