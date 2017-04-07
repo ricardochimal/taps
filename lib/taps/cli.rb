@@ -5,7 +5,7 @@ require 'taps/config'
 require 'taps/log'
 require 'vendor/okjson'
 
-Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || begin
+Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || ENV['DATABASE_URL'] || begin
   # this is dirty but it solves a weird problem where the tempfile disappears mid-process
   require 'sqlite3'
   $__taps_database = Tempfile.new('taps.db')
