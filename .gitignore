@@ -2,6 +2,6 @@
 *.db
 .bundle
 pkg
-taps-*.gem
+taps*.gem
 Gemfile.lock
 *.dat

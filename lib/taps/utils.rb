@@ -54,16 +54,16 @@ module Taps
       header = data[0].keys
       only_data = data.collect do |row|
         row = blobs_to_string(row, string_columns)
-        row.each do |column, data|
-          if data.to_s.length > (max_lengths[column] || data.to_s.length)
+        row.each do |column, value|
+          if value.to_s.length > (max_lengths[column] || value.to_s.length)
             raise Taps::InvalidData.new(<<-ERROR)
-  Detected data that exceeds the length limitation of its column. This is
+  Detected value that exceeds the length limitation of its column. This is
   generally due to the fact that SQLite does not enforce length restrictions.
 
   Table  : #{table}
   Column : #{column}
   Type   : #{schema.detect{|s| s.first == column}.last[:db_type]}
-  Data   : #{data}
+  Value  : #{value}
             ERROR
           end
         end

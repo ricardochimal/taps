@@ -30,7 +30,7 @@ module Taps
 
     before do
       unless request.path_info == '/health'
-        major, minor, patch = request.env['HTTP_TAPS_VERSION'].split('.') rescue []
+        major, minor = request.env['HTTP_TAPS_VERSION'].split('.') rescue []
         unless "#{major}.#{minor}" == Taps.compatible_version
           halt 417, "Taps >= v#{Taps.compatible_version}.x is required for this server"
         end
@@ -67,7 +67,6 @@ module Taps
       state = DataStream.parse_json(params[:state])
       stream = nil
 
-      size = 0
       session.conn do |db|
         Taps::Utils.server_error_handling do
           stream = DataStream.factory(db, state)
