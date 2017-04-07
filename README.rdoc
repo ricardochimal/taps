@@ -2,6 +2,14 @@
 
 A simple database agnostic import/export app to transfer data to/from a remote database.
 
+*Forked and updated* with fixes and improvements. Integrates fixes and updates from {taps-taps}(https://github.com/wijet/taps) and {tapsicle}(https://github.com/jiffyondemand/tapsicle) forks.
+
+== Installation
+
+Renamed gem
+
+  $ gem install taps2
+
 == Usage: Server
 
 Here's how you start a taps server
@@ -38,7 +46,7 @@ or when you want to transfer tables that start with a word
 
 == Meta
 
-Maintained by Ricardo Chimal, Jr. (ricardo at heroku dot com)
+Maintained by {Joel Van Horn}(http://github.com/joelvh)
 
 Written by Ricardo Chimal, Jr. (ricardo at heroku dot com) and Adam Wiggins (adam at heroku dot com)
 
