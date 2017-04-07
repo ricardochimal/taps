@@ -17,11 +17,11 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "rest-client", ">= 1.4.0"
   gem.add_runtime_dependency "sequel",      ">= 4.0.0"
   gem.add_runtime_dependency "sinatra",     ">= 1.4.4"
-  gem.add_runtime_dependency "sqlite3",     ">= 1.3.8"
   gem.add_runtime_dependency "extlib"
 
+  gem.add_development_dependency "sqlite3", ">= 1.3.8"
   gem.add_development_dependency "bacon"
-  gem.add_development_dependency "mocha", ">= 1.2.1"
+  gem.add_development_dependency "mocha",   ">= 1.2.1"
   gem.add_development_dependency "rack-test"
   gem.add_development_dependency "rake"
   gem.add_development_dependency "simplecov"
