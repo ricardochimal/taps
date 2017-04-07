@@ -29,6 +29,8 @@ By default, Taps will create a SQLite3 database.
 
 The `TAPS_LOGIN` and `TAPS_PASSWORD` variables are used for default Basic Authentication.
 
+The `TAPS_YAML_ENGINE` variable lets you specify a YAML engine such as "psych".
+
 The `NO_DEFAULT_DATABASE_URL` variable allows you to require a database URI be sent in the `body` of the request that initiates a Taps session. (Default behavior will use the database URI specified when starting the server.)
 
 The `NO_DUMP_MARSHAL_ERRORS` variable allows you to disable dumping of marshalled data that caused an error.

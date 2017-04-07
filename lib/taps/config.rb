@@ -5,6 +5,8 @@ Sequel.datetime_class = DateTime
 Sequel.extension :core_extensions
 Sequel.extension :schema_dumper
 
+YAML::ENGINE.yamler = ENV['TAPS_YAML_ENGINE'] if ENV['TAPS_YAML_ENGINE']
+
 module Taps
   def self.exiting=(val)
     @@exiting = val
