@@ -174,7 +174,7 @@ class DataStream
       params = Taps::Multipart.parse(res)
       params[:json] = self.class.parse_json(params[:json]) if params.has_key?(:json)
       return params
-    rescue ::OkJson::Error
+    rescue ::OkJson::ParserError
       raise Taps::CorruptedData.new("Invalid OkJson Received")
     end
   end
