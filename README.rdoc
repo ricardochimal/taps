@@ -92,7 +92,7 @@ or when you want to transfer tables that start with a word
 
 == Meta
 
-Maintained by {Joel Van Horn}(http://github.com/joelvh)
+Maintained by {Joel Van Horn}[http://github.com/joelvh]
 
 Written by Ricardo Chimal, Jr. (ricardo at heroku dot com) and Adam Wiggins (adam at heroku dot com)
 
