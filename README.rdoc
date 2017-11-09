@@ -2,7 +2,7 @@
 
 A simple database agnostic import/export app to transfer data to/from a remote database.
 
-*Forked and updated* with fixes and improvements. Integrates fixes and updates from {taps-taps}(https://github.com/wijet/taps) and {tapsicle}(https://github.com/jiffyondemand/tapsicle) forks.
+*Forked and updated* with fixes and improvements. Integrates fixes and updates from {taps-taps}[https://github.com/wijet/taps] and {tapsicle}[https://github.com/jiffyondemand/tapsicle] forks.
 
 == Installation
 
@@ -10,7 +10,7 @@ Renamed gem
 
   $ gem install taps2
 
-By default, Taps will attempt to create a SQLite3 database for sessions. Unless you specify a different database type, you'll need to install SQLite 3. (See _Environment Variables_ for alternative session databases.)
+By default, Taps will attempt to create a SQLite3 database for sessions. Unless you specify a different database type, you'll need to install SQLite3. (See _Environment Variables_ for alternative session databases.)
 
   $ gem install sqlite3
 
