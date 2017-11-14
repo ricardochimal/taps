@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'extlib'
 
-$:.unshift File.expand_path("../lib", __FILE__)
+$:.unshift File.expand_path('../lib', __FILE__)
 require 'taps/config'
 
 Taps::Config.taps_database_url = ENV['TAPS_DATABASE_URL'] || ENV['DATABASE_URL']

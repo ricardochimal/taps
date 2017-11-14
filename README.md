@@ -1,10 +1,10 @@
-= Taps (2) -- simple database import/export app
+# Taps (2) -- simple database import/export app
 
 A simple database agnostic import/export app to transfer data to/from a remote database.
 
-*Forked and updated* with fixes and improvements. Integrates fixes and updates from {taps-taps}[https://github.com/wijet/taps] and {tapsicle}[https://github.com/jiffyondemand/tapsicle] forks.
+*Forked and updated* with fixes and improvements. Integrates fixes and updates from [taps-taps](https://github.com/wijet/taps) and [tapsicle](https://github.com/jiffyondemand/tapsicle) forks.
 
-== Installation
+## Installation
 
 Renamed gem
 
@@ -19,7 +19,7 @@ Install the gems to support databases you want to work with, such as MySQL or Po
   $ gem install mysql2
   $ gem install pg
 
-== Configuration: Environment Variables
+## Configuration: Environment Variables
 
 _All environment variables are optional._
 
@@ -37,42 +37,42 @@ The `NO_DUMP_MARSHAL_ERRORS` variable allows you to disable dumping of marshalle
 
 The `NO_DEFLATE` variable allows you to disable gzip compression (`Rack::Deflater`) on the server.
 
-== Usage: Server
+## Usage: Server
 
 Here's how you start a taps server
 
-  $ taps server postgres://localdbuser:localdbpass@localhost/dbname httpuser httppassword
+    $ taps2 server postgres://localdbuser:localdbpass@localhost/dbname httpuser httppassword
 
 You can also specify an encoding in the database url
 
-  $ taps server mysql://localdbuser:localdbpass@localhost/dbname?encoding=latin1 httpuser httppassword
+    $ taps2 server mysql://localdbuser:localdbpass@localhost/dbname?encoding=latin1 httpuser httppassword
 
-== Usage: Client
+## Usage: Client
 
 When you want to pull down a database from a taps server
 
-  $ taps pull postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000
+    $ taps2 pull postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000
 
 or when you want to push a local database to a taps server
 
-  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000
+    $ taps2 push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000
 
 or when you want to transfer a list of tables
 
-  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --tables logs,tags
+    $ taps2 push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --tables logs,tags
 
 or when you want to transfer tables that start with a word
 
-  $ taps push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --filter '^log_'
+    $ taps2 push postgres://dbuser:dbpassword@localhost/dbname http://httpuser:httppassword@example.com:5000 --filter '^log_'
 
-== Troubleshooting
+## Troubleshooting
 
 * "Error: invalid byte sequence for encoding" can be resolved by adding `encoding` to database URI (https://github.com/ricardochimal/taps/issues/110)
-  * *Example:* `taps server mysql://root@localhost/example_database?encoding=UTF8 httpuser httppassword`
+  * *Example:* `taps2 server mysql://root@localhost/example_database?encoding=UTF8 httpuser httppassword`
 * SQLite3 database URI may require three slashes (e.g. `sqlite3:///path/to/file.db`)
   * Make sure to use an absolute/full path to the file on the server
 
-== Known Issues
+## Known Issues
 
 * Foreign key constraints get lost in the schema transfer
 * Indexes may drop the "order" (https://github.com/ricardochimal/taps/issues/111)
@@ -86,13 +86,13 @@ or when you want to transfer tables that start with a word
   * MySQL `bigint` converts to PostgreSQL `string` (https://github.com/ricardochimal/taps/issues/77)
 * Passwords in database URI can cause issues with special characters (https://github.com/ricardochimal/taps/issues/74)
 
-== Feature Requests
+## Feature Requests
 
 * Allow a single Taps server to serve data from different databases (https://github.com/ricardochimal/taps/issues/103)
 
-== Meta
+## Meta
 
-Maintained by {Joel Van Horn}[http://github.com/joelvh]
+Maintained by [Joel Van Horn](http://github.com/joelvh)
 
 Written by Ricardo Chimal, Jr. (ricardo at heroku dot com) and Adam Wiggins (adam at heroku dot com)
 
