@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.homepage    = 'http://github.com/joelvh/taps2'
   gem.summary     = 'Simple database import/export app'
   gem.description = 'A simple database agnostic import/export app to transfer data to/from a remote database.'
-  gem.executables = %w[ taps schema ]
+  gem.executables = %w[ taps2 schema2 ]
 
   gem.files = Dir['**/*'].select { |d| d =~ %r{^(README|VERSION|bin/|data/|ext/|lib/|spec/|test/)} }
 
