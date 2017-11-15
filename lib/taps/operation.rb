@@ -16,7 +16,7 @@ module Taps
     attr_reader :database_url, :remote_url, :opts
     attr_reader :session_uri
 
-    def initialize(database_url, remote_url, opts={})
+    def initialize(database_url, remote_url, opts = {})
       @database_url = database_url
       @remote_url = remote_url
       @opts = opts
@@ -25,7 +25,7 @@ module Taps
     end
 
     def file_prefix
-      "op"
+      'op'
     end
 
     def skip_schema?
@@ -48,7 +48,7 @@ module Taps
       return tables unless table_filter || exclude_tables
 
       re = table_filter ? Regexp.new(table_filter) : nil
-      if tables.kind_of?(Hash)
+      if tables.is_a?(Hash)
         ntables = {}
         tables.each do |t, d|
           if !exclude_tables.include?(t.to_s) && (!re || !re.match(t.to_s).nil?)
@@ -66,7 +66,7 @@ module Taps
     end
 
     def store_session
-      file = "#{file_prefix}_#{Time.now.strftime("%Y%m%d%H%M")}.dat"
+      file = "#{file_prefix}_#{Time.now.strftime('%Y%m%d%H%M')}.dat"
       puts "\nSaving session to #{file}.."
       File.open(file, 'w') do |f|
         f.write(::OkJson.encode(to_hash))
@@ -75,13 +75,13 @@ module Taps
 
     def to_hash
       {
-        :klass => self.class.to_s,
-        :database_url => database_url,
-        :remote_url => remote_url,
-        :session_uri => session_uri,
-        :stream_state => stream_state,
-        :completed_tables => completed_tables,
-        :table_filter => table_filter,
+        klass: self.class.to_s,
+        database_url: database_url,
+        remote_url: remote_url,
+        session_uri: session_uri,
+        stream_state: stream_state,
+        completed_tables: completed_tables,
+        table_filter: table_filter
       }
     end
 
@@ -90,15 +90,15 @@ module Taps
     end
 
     def setup_signal_trap
-      trap("INT") {
+      trap('INT') do
         puts "\nCompleting current action..."
         @exiting = true
-      }
+      end
 
-      trap("TERM") {
+      trap('TERM') do
         puts "\nCompleting current action..."
         @exiting = true
-      }
+      end
     end
 
     def resuming?
@@ -162,56 +162,54 @@ module Taps
     end
 
     def http_headers(extra = {})
-      base = { :taps_version => Taps.version }
-      if compression_disabled?
-        base[:accept_encoding] = ""
-      else
-        base[:accept_encoding] = "gzip, deflate"
-      end
+      base = { taps_version: Taps.version }
+      base[:accept_encoding] = if compression_disabled?
+                                 ''
+                               else
+                                 'gzip, deflate'
+                               end
       base.merge(extra)
     end
 
     def format_number(num)
-      num.to_s.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1,")
+      num.to_s.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, '\\1,')
     end
 
     def verify_server
-      begin
-        server['/'].get(http_headers)
-      rescue RestClient::RequestFailed => e
-        if e.http_code == 417
-          puts "#{safe_remote_url} is running a different minor version of taps."
-          puts "#{e.response.to_s}"
-          exit(1)
-        else
-          raise
-        end
-      rescue RestClient::Unauthorized
-        puts "Bad credentials given for #{safe_remote_url}"
+      server['/'].get(http_headers)
+    rescue RestClient::RequestFailed => e
+      if e.http_code == 417
+        puts "#{safe_remote_url} is running a different minor version of taps."
+        puts e.response.to_s
         exit(1)
-      rescue Errno::ECONNREFUSED
-        puts "Can't connect to #{safe_remote_url}. Please check that it's running"
-        exit(1)
+      else
+        raise
       end
+    rescue RestClient::Unauthorized
+      puts "Bad credentials given for #{safe_remote_url}"
+      exit(1)
+    rescue Errno::ECONNREFUSED
+      puts "Can't connect to #{safe_remote_url}. Please check that it's running"
+      exit(1)
     end
 
-    def catch_errors(&blk)
+    def catch_errors
       verify_server
 
       begin
-        blk.call
+        yield
         close_session
       rescue RestClient::Exception, Taps::BaseError => e
         store_session
-        if e.kind_of?(Taps::BaseError)
-          puts "!!! Caught Server Exception"
+        if e.is_a?(Taps::BaseError)
+          puts '!!! Caught Server Exception'
           puts "#{e.class}: #{e.message}"
           puts "\n#{e.original_backtrace}" if e.original_backtrace
           exit(1)
         elsif e.respond_to?(:response)
-          puts "!!! Caught Server Exception"
+          puts '!!! Caught Server Exception'
           puts "HTTP CODE: #{e.http_code}"
-          puts "#{e.response.to_s}"
+          puts e.response.to_s
           exit(1)
         else
           raise
@@ -222,10 +220,10 @@ module Taps
     def self.factory(type, database_url, remote_url, opts)
       type = :resume if opts[:resume]
       klass = case type
-        when :pull then Taps::Pull
-        when :push then Taps::Push
-        when :resume then eval(opts[:klass])
-        else raise "Unknown Operation Type -> #{type}"
+              when :pull then Taps::Pull
+              when :push then Taps::Push
+              when :resume then eval(opts[:klass])
+              else raise "Unknown Operation Type -> #{type}"
       end
 
       klass.new(database_url, remote_url, opts)
@@ -234,17 +232,17 @@ module Taps
 
   class Pull < Operation
     def file_prefix
-      "pull"
+      'pull'
     end
 
     def to_hash
-      super.merge(:remote_tables_info => remote_tables_info)
+      super.merge(remote_tables_info: remote_tables_info)
     end
 
     def run
       catch_errors do
         unless resuming?
-          pull_schema if !skip_schema?
+          pull_schema unless skip_schema?
           pull_indexes if indexes_first? && !skip_schema?
         end
         setup_signal_trap
@@ -256,11 +254,11 @@ module Taps
     end
 
     def pull_schema
-      puts "Receiving schema"
+      puts 'Receiving schema'
 
       progress = ProgressBar.new('Schema', tables.size)
-      tables.each do |table_name, count|
-        schema_data = session_resource['pull/schema'].post({:table_name => table_name}, http_headers).to_s
+      tables.each do |table_name, _count|
+        schema_data = session_resource['pull/schema'].post({ table_name: table_name }, http_headers).to_s
         log.debug "Table: #{table_name}\n#{schema_data}\n"
         output = Taps::Utils.load_schema(database_url, schema_data)
         output = output.to_s.strip
@@ -271,16 +269,14 @@ module Taps
     end
 
     def pull_data
-      puts "Receiving data"
+      puts 'Receiving data'
 
       puts "#{tables.size} tables, #{format_number(record_count)} records"
 
       tables.each do |table_name, count|
         progress = ProgressBar.new(table_name.to_s, count)
-        stream = Taps::DataStream.factory(db, {
-          :chunksize => default_chunksize,
-          :table_name => table_name
-        })
+        stream = Taps::DataStream.factory(db, chunksize: default_chunksize,
+                                              table_name: table_name)
         pull_data_from_table(stream, progress)
       end
     end
@@ -332,7 +328,7 @@ module Taps
     end
 
     def record_count
-      @record_count ||= remote_tables_info.values.inject(0) { |a,c| a += c }
+      @record_count ||= remote_tables_info.values.inject(0) { |a, c| a += c }
     end
 
     def remote_tables_info
@@ -355,7 +351,7 @@ module Taps
       apply_table_filter(tables).each do |table_name|
         retries = 0
         begin
-          count = Integer(session_resource['pull/table_count'].post({:table => table_name}, http_headers).to_s)
+          count = Integer(session_resource['pull/table_count'].post({ table: table_name }, http_headers).to_s)
           data[table_name] = count
         rescue RestClient::Exception
           retries += 1
@@ -368,12 +364,12 @@ module Taps
     end
 
     def pull_indexes
-      puts "Receiving indexes"
+      puts 'Receiving indexes'
 
       idxs = ::OkJson.decode(session_resource['pull/indexes'].get(http_headers).to_s)
 
       apply_table_filter(idxs).each do |table, indexes|
-        next unless indexes.size > 0
+        next if indexes.empty?
         progress = ProgressBar.new(table, indexes.size)
         indexes.each do |idx|
           output = Taps::Utils.load_indexes(database_url, idx)
@@ -386,7 +382,7 @@ module Taps
     end
 
     def pull_reset_sequences
-      puts "Resetting sequences"
+      puts 'Resetting sequences'
 
       output = Taps::Utils.schema_bin(:reset_db_sequences, database_url)
       output = output.to_s.strip
@@ -396,17 +392,17 @@ module Taps
 
   class Push < Operation
     def file_prefix
-      "push"
+      'push'
     end
 
     def to_hash
-      super.merge(:local_tables_info => local_tables_info)
+      super.merge(local_tables_info: local_tables_info)
     end
 
     def run
       catch_errors do
         unless resuming?
-          push_schema if !skip_schema?
+          push_schema unless skip_schema?
           push_indexes if indexes_first? && !skip_schema?
         end
         setup_signal_trap
@@ -420,12 +416,12 @@ module Taps
     def push_indexes
       idxs = ::OkJson.decode(Taps::Utils.schema_bin(:indexes_individual, database_url))
 
-      return unless idxs.size > 0
+      return if idxs.empty?
 
-      puts "Sending indexes"
+      puts 'Sending indexes'
 
       apply_table_filter(idxs).each do |table, indexes|
-        next unless indexes.size > 0
+        next if indexes.empty?
         progress = ProgressBar.new(table, indexes.size)
         indexes.each do |idx|
           session_resource['push/indexes'].post(idx, http_headers)
@@ -436,10 +432,10 @@ module Taps
     end
 
     def push_schema
-      puts "Sending schema"
+      puts 'Sending schema'
 
       progress = ProgressBar.new('Schema', tables.size)
-      tables.each do |table, count|
+      tables.each do |table, _count|
         schema_data = Taps::Utils.schema_bin(:dump_table, database_url, table)
         log.debug "Table: #{table}\n#{schema_data}\n"
         session_resource['push/schema'].post(schema_data, http_headers)
@@ -449,7 +445,7 @@ module Taps
     end
 
     def push_reset_sequences
-      puts "Resetting sequences"
+      puts 'Resetting sequences'
 
       session_resource['push/reset_sequences'].post('', http_headers)
     end
@@ -466,14 +462,14 @@ module Taps
     end
 
     def push_data
-      puts "Sending data"
+      puts 'Sending data'
 
       puts "#{tables.size} tables, #{format_number(record_count)} records"
 
       tables.each do |table_name, count|
         stream = Taps::DataStream.factory(db,
-          :table_name => table_name,
-          :chunksize => default_chunksize)
+                                          table_name: table_name,
+                                          chunksize: default_chunksize)
         progress = ProgressBar.new(table_name.to_s, count)
         push_data_from_table(stream, progress)
       end
@@ -501,8 +497,8 @@ module Taps
             data = nil
             d2 = c.time_delta do
               data = {
-                :state => stream.to_hash,
-                :checksum => Taps::Utils.checksum(encoded_data).to_s
+                state: stream.to_hash,
+                checksum: Taps::Utils.checksum(encoded_data).to_s
               }
             end
 
@@ -510,15 +506,15 @@ module Taps
               content, content_type = nil
               d3 = c.time_delta do
                 content, content_type = Taps::Multipart.create do |r|
-                  r.attach :name => :encoded_data,
-                    :payload => encoded_data,
-                    :content_type => 'application/octet-stream'
-                  r.attach :name => :json,
-                    :payload => ::OkJson.encode(data),
-                    :content_type => 'application/json'
+                  r.attach name: :encoded_data,
+                           payload: encoded_data,
+                           content_type: 'application/octet-stream'
+                  r.attach name: :json,
+                           payload: ::OkJson.encode(data),
+                           content_type: 'application/json'
                 end
               end
-              session_resource['push/table'].post(content, http_headers(:content_type => content_type))
+              session_resource['push/table'].post(content, http_headers(content_type: content_type))
               self.stream_state = stream.to_hash
             rescue => e
               Taps::Utils.reraise_server_exception(e)
@@ -563,7 +559,7 @@ module Taps
     end
 
     def record_count
-      @record_count ||= local_tables_info.values.inject(0) { |a,c| a += c }
+      @record_count ||= local_tables_info.values.inject(0) { |a, c| a += c }
     end
 
     def fetch_local_tables_info
@@ -573,6 +569,5 @@ module Taps
       end
       apply_table_filter(tables_with_counts)
     end
-
   end
 end

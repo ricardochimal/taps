@@ -29,7 +29,7 @@ module Taps
 
     attr_reader :opts
 
-    def initialize(opts={})
+    def initialize(opts = {})
       @opts = opts
     end
 
@@ -68,6 +68,5 @@ module Taps
       params.symbolize_keys!
       params
     end
-
   end
 end

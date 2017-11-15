@@ -9,7 +9,7 @@ module Taps
 
     def dump(database_url)
       db = Sequel.connect(database_url)
-      db.dump_schema_migration(:indexes => false)
+      db.dump_schema_migration(indexes: false)
     end
 
     def dump_table(database_url, table)
@@ -17,7 +17,7 @@ module Taps
         <<END_MIG
 Class.new(Sequel::Migration) do
   def up
-    #{db.extension(:schema_dumper).dump_table_schema(Sequel.identifier(table.to_sym), :indexes => false)}
+    #{db.extension(:schema_dumper).dump_table_schema(Sequel.identifier(table.to_sym), indexes: false)}
   end
 
   def down

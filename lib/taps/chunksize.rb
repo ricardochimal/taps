@@ -15,7 +15,7 @@ class Taps::Chunksize
   end
 
   def reset_chunksize
-    @chunksize = (retries <= 1) ? 10 : 1
+    @chunksize = retries <= 1 ? 10 : 1
   end
 
   def diff
@@ -24,7 +24,11 @@ class Taps::Chunksize
 
   def time_in_db=(t)
     @time_in_db = t
-    @time_in_db = @time_in_db.to_f rescue 0.0
+    @time_in_db = begin
+                    @time_in_db.to_f
+                  rescue
+                    0.0
+                  end
   end
 
   def time_delta
@@ -36,16 +40,16 @@ class Taps::Chunksize
 
   def calc_new_chunksize
     new_chunksize = if retries > 0
-      chunksize
-    elsif diff > 3.0
-      (chunksize / 3).ceil
-    elsif diff > 1.1
-      chunksize - 100
-    elsif diff < 0.8
-      chunksize * 2
-    else
-      chunksize + 100
-    end
+                      chunksize
+                    elsif diff > 3.0
+                      (chunksize / 3).ceil
+                    elsif diff > 1.1
+                      chunksize - 100
+                    elsif diff < 0.8
+                      chunksize * 2
+                    else
+                      chunksize + 100
+                    end
     new_chunksize = 1 if new_chunksize < 1
     new_chunksize
   end

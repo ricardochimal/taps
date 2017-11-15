@@ -4,12 +4,12 @@ require 'rubygems'
 
 gem 'sequel', '~> 4.0'
 
-$:.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 
 require 'taps/schema'
 
-cmd = ARGV.shift.strip rescue ''
-database_url = ARGV.shift.strip rescue ''
+cmd = ARGV.shift.to_s.strip
+database_url = ARGV.shift.to_s.strip
 
 def show_usage_and_exit
   puts <<EOTXT
@@ -36,12 +36,20 @@ when 'indexes'
 when 'indexes_individual'
   puts Taps::Schema.indexes_individual(database_url)
 when 'load_indexes'
-  filename = ARGV.shift.strip rescue ''
-  indexes = File.read(filename) rescue show_usage_and_exit
+  filename = ARGV.shift.to_s.strip
+  indexes = begin
+              File.read(filename)
+            rescue StandardError
+              show_usage_and_exit
+            end
   Taps::Schema.load_indexes(database_url, indexes)
 when 'load'
-  filename = ARGV.shift.strip rescue ''
-  schema = File.read(filename) rescue show_usage_and_exit
+  filename = ARGV.shift.to_s.strip
+  schema = begin
+             File.read(filename)
+           rescue StandardError
+             show_usage_and_exit
+           end
   Taps::Schema.load(database_url, schema)
 when 'reset_db_sequences'
   Taps::Schema.reset_db_sequences(database_url)

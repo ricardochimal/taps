@@ -31,45 +31,41 @@ module Taps
     end
 
     def base64encode(data)
-      [data].pack("m")
+      [data].pack('m')
     end
 
     def base64decode(data)
-      data.unpack("m").first
+      data.unpack('m').first
     end
 
-    def format_data(data, opts={})
-      return {} if data.size == 0
+    def format_data(data, opts = {})
+      return {} if data.empty?
       string_columns = opts[:string_columns] || []
       schema = opts[:schema] || []
       table  = opts[:table]
 
-      max_lengths = schema.inject({}) do |hash, (column, meta)|
-        if meta[:db_type] =~ /^varchar\((\d+)\)/
-          hash.update(column => $1.to_i)
-        end
-        hash
+      max_lengths = schema.each_with_object({}) do |(column, meta), hash|
+        hash.update(column => Regexp.last_match(1).to_i) if meta[:db_type] =~ /^varchar\((\d+)\)/
       end
 
       header = data[0].keys
       only_data = data.collect do |row|
         row = blobs_to_string(row, string_columns)
         row.each do |column, value|
-          if value.to_s.length > (max_lengths[column] || value.to_s.length)
-            raise Taps::InvalidData.new(<<-ERROR)
+          next unless value.to_s.length > (max_lengths[column] || value.to_s.length)
+          raise Taps::InvalidData, <<-ERROR
 Detected value that exceeds the length limitation of its column. This is
 generally due to the fact that SQLite does not enforce length restrictions.
 
 Table  : #{table}
 Column : #{column}
-Type   : #{schema.detect{|s| s.first == column}.last[:db_type]}
+Type   : #{schema.detect { |s| s.first == column }.last[:db_type]}
 Value  : #{value}
-ERROR
-          end
+          ERROR
         end
         header.collect { |h| row[h] }
       end
-      { :header => header, :data => only_data }
+      { header: header, data: only_data }
     end
 
     # mysql text and blobs fields are handled the same way internally
@@ -87,9 +83,9 @@ ERROR
     end
 
     def blobs_to_string(row, columns)
-      return row if columns.size == 0
+      return row if columns.empty?
       columns.each do |c|
-        row[c] = row[c].to_s if row[c].kind_of?(Sequel::SQL::Blob)
+        row[c] = row[c].to_s if row[c].is_a?(Sequel::SQL::Blob)
       end
       row
     end
@@ -138,42 +134,43 @@ ERROR
     end
 
     def single_integer_primary_key(db, table)
-      table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
+      table = table.to_sym.identifier unless table.is_a?(Sequel::SQL::Identifier)
       keys = db.schema(table).select { |c| c[1][:primary_key] }
-      not keys.nil? and keys.size == 1 and keys[0][1][:type] == :integer
+      !keys.nil? && (keys.size == 1) && (keys[0][1][:type] == :integer)
     end
 
     def order_by(db, table)
       pkey = primary_key(db, table)
       if pkey
-        pkey.kind_of?(Array) ? pkey : [pkey.to_sym]
+        pkey.is_a?(Array) ? pkey : [pkey.to_sym]
       else
-        table = table.to_sym.identifier unless table.kind_of?(Sequel::SQL::Identifier)
+        table = table.to_sym.identifier unless table.is_a?(Sequel::SQL::Identifier)
         db[table].columns
       end
     end
 
-
     # try to detect server side errors to
     # give the client a more useful error message
-    def server_error_handling(&blk)
-      begin
-        blk.call
-      rescue Sequel::DatabaseError => e
-        if e.message =~ /duplicate key value/i
-          raise Taps::DuplicatePrimaryKeyError, e.message
-        else
-          raise
-        end
+    def server_error_handling
+      yield
+    rescue Sequel::DatabaseError => e
+      if e.message =~ /duplicate key value/i
+        raise Taps::DuplicatePrimaryKeyError, e.message
+      else
+        raise
       end
     end
 
     def reraise_server_exception(e)
-      if e.kind_of?(RestClient::Exception)
+      if e.is_a?(RestClient::Exception)
         if e.respond_to?(:response) && e.response.headers[:content_type] == 'application/json'
           json = ::OkJson.decode(e.response.to_s)
-          klass = eval(json['error_class']) rescue nil
-          raise klass.new(json['error_message'], :backtrace => json['error_backtrace']) if klass
+          klass = begin
+                    eval(json['error_class'])
+                  rescue
+                    nil
+                  end
+          raise klass.new(json['error_message'], backtrace: json['error_backtrace']) if klass
         end
       end
       raise e

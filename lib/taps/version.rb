@@ -1,18 +1,18 @@
-require "yaml"
-
 module Taps
-  def self.version_yml
-    @@version_yml ||= YAML.load(File.read(File.dirname(__FILE__) + '/../../VERSION.yml'))
-  end
+  module Version
+    MAJOR = 0
+    MINOR = 6
+    PATCH = 0
+    BUILD = 0
 
-  def self.version
-    version = "#{version_yml[:major]}.#{version_yml[:minor]}.#{version_yml[:patch]}"
-    version += ".#{version_yml[:build]}" if version_yml[:build]
-    version
-  end
+    def self.current
+      version = "#{MAJOR}.#{MINOR}.#{PATCH}"
+      version += ".#{BUILD}" if BUILD > 0
+      version
+    end
 
-  def self.compatible_version
-    "#{version_yml[:major]}.#{version_yml[:minor]}"
+    def self.compatible_version
+      "#{MAJOR}.#{MINOR}"
+    end
   end
 end
-

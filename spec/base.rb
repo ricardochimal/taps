@@ -5,13 +5,13 @@ require 'mocha/api'
 require 'rack/test'
 require 'tempfile'
 
-$:.unshift File.dirname(__FILE__) + "/../lib"
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 
 class Bacon::Context
   include Mocha::API
   include Rack::Test::Methods
 
-  alias_method :old_it, :it
+  alias old_it it
   def it(description)
     old_it(description) do
       mocha_setup

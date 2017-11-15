@@ -12,17 +12,17 @@ module Taps
 
     use Rack::Deflater unless ENV['NO_DEFLATE']
 
-    set :raise_errors => false
-    set :show_exceptions => false
+    set raise_errors: false
+    set show_exceptions: false
 
     error do
       e = request.env['sinatra.error']
 
       puts "ERROR: #{e.class}: #{e.message}"
 
-      if e.kind_of?(Taps::BaseError)
-        content_type "application/json"
-        halt 412, ::OkJson.encode({ 'error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n") })
+      if e.is_a?(Taps::BaseError)
+        content_type 'application/json'
+        halt 412, ::OkJson.encode('error_class' => e.class.to_s, 'error_message' => e.message, 'error_backtrace' => e.backtrace.join("\n"))
       else
         "Taps Server Error: #{e}\n#{e.backtrace}"
       end
@@ -30,8 +30,8 @@ module Taps
 
     before do
       unless request.path_info == '/health'
-        major, minor = request.env['HTTP_TAPS_VERSION'].split('.') rescue []
-        unless "#{major}.#{minor}" == Taps.compatible_version
+        major, minor = request.env['HTTP_TAPS_VERSION'].to_s.split('.')
+        unless Taps.compatible_version == "#{major}.#{minor}"
           halt 417, "Taps >= v#{Taps.compatible_version}.x is required for this server"
         end
       end
@@ -39,29 +39,29 @@ module Taps
 
     get '/health' do
       content_type 'application/json'
-      ::OkJson.encode({ :ok => true })
+      ::OkJson.encode(ok: true)
     end
 
     get '/' do
-      "hello"
+      'hello'
     end
 
     post '/sessions' do
-      key = rand(9999999999).to_s
+      key = rand(9_999_999_999).to_s
 
-      if ENV['NO_DEFAULT_DATABASE_URL']
-        database_url = request.body.string
-      else
-        database_url = Taps::Config.database_url || request.body.string
-      end
+      database_url = if ENV['NO_DEFAULT_DATABASE_URL']
+                       request.body.string
+                     else
+                       Taps::Config.database_url || request.body.string
+                     end
 
-      DbSession.create(:key => key, :database_url => database_url, :started_at => Time.now, :last_access => Time.now)
+      DbSession.create(key: key, database_url: database_url, started_at: Time.now, last_access: Time.now)
 
       "/sessions/#{key}"
     end
 
     post '/sessions/:key/push/verify_stream' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       state = DataStream.parse_json(params[:state])
@@ -75,11 +75,11 @@ module Taps
       end
 
       content_type 'application/json'
-      ::OkJson.encode({ :state => stream.to_hash })
+      ::OkJson.encode(state: stream.to_hash)
     end
 
     post '/sessions/:key/push/table' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       json = DataStream.parse_json(params[:json])
@@ -97,14 +97,14 @@ module Taps
     end
 
     post '/sessions/:key/push/reset_sequences' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       Taps::Utils.schema_bin(:reset_db_sequences, session.database_url)
     end
 
     post '/sessions/:key/push/schema' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       schema_data = request.body.read
@@ -112,7 +112,7 @@ module Taps
     end
 
     post '/sessions/:key/push/indexes' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       index_data = request.body.read
@@ -120,14 +120,14 @@ module Taps
     end
 
     post '/sessions/:key/pull/schema' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       Taps::Utils.schema_bin(:dump_table, session.database_url, params[:table_name])
     end
 
     get '/sessions/:key/pull/indexes' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       content_type 'application/json'
@@ -135,7 +135,7 @@ module Taps
     end
 
     get '/sessions/:key/pull/table_names' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       tables = []
@@ -148,18 +148,18 @@ module Taps
     end
 
     post '/sessions/:key/pull/table_count' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       count = 0
       session.conn do |db|
-        count = db[ params[:table].to_sym.identifier ].count
+        count = db[params[:table].to_sym.identifier].count
       end
       count.to_s
     end
 
     post '/sessions/:key/pull/table' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       encoded_data = nil
@@ -172,15 +172,15 @@ module Taps
       end
 
       checksum = Taps::Utils.checksum(encoded_data).to_s
-      json = ::OkJson.encode({ :checksum => checksum, :state => stream.to_hash })
+      json = ::OkJson.encode(checksum: checksum, state: stream.to_hash)
 
       content, content_type_value = Taps::Multipart.create do |r|
-        r.attach :name => :encoded_data,
-          :payload => encoded_data,
-          :content_type => 'application/octet-stream'
-        r.attach :name => :json,
-          :payload => json,
-          :content_type => 'application/json'
+        r.attach name: :encoded_data,
+                 payload: encoded_data,
+                 content_type: 'application/octet-stream'
+        r.attach name: :json,
+                 payload: json,
+                 content_type: 'application/json'
       end
 
       content_type content_type_value
@@ -188,13 +188,12 @@ module Taps
     end
 
     delete '/sessions/:key' do
-      session = DbSession.filter(:key => params[:key]).first
+      session = DbSession.filter(key: params[:key]).first
       halt 404 unless session
 
       session.destroy
 
-      "ok"
+      'ok'
     end
-
   end
 end
