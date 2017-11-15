@@ -8,16 +8,16 @@ A simple database agnostic import/export app to transfer data to/from a remote d
 
 Renamed gem
 
-  $ gem install taps2
+    $ gem install taps2
 
 By default, Taps will attempt to create a SQLite3 database for sessions. Unless you specify a different database type, you'll need to install SQLite3. (See _Environment Variables_ for alternative session databases.)
 
-  $ gem install sqlite3
+    $ gem install sqlite3
 
 Install the gems to support databases you want to work with, such as MySQL or PostgreSQL.
 
-  $ gem install mysql2
-  $ gem install pg
+    $ gem install mysql2
+    $ gem install pg
 
 ## Configuration: Environment Variables
 
