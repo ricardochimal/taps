@@ -64,7 +64,7 @@ module Taps
         'rack.input' => StringIO.new(content)
       }
 
-      params = Rack::Utils::Multipart.parse_multipart(env)
+      params = Rack::Multipart.parse_multipart(env)
       params.symbolize_keys!
       params
     end

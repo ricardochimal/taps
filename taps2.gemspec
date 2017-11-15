@@ -14,7 +14,7 @@ Gem::Specification.new do |gem|
   gem.files = Dir['**/*'].select { |d| d =~ %r{^(README|VERSION|bin/|data/|ext/|lib/|spec/|test/)} }
 
   gem.add_runtime_dependency 'extlib'
-  gem.add_runtime_dependency 'rack', '>= 1.0.1'
+  gem.add_runtime_dependency 'rack', '>= 1.3'
   gem.add_runtime_dependency 'rest-client', '>= 1.4.0'
   gem.add_runtime_dependency 'sequel', Taps::Version.sequel_version
   gem.add_runtime_dependency 'sinatra', '>= 1.4.4'
