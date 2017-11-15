@@ -2,7 +2,7 @@ module Taps
   module Version
     MAJOR = 0
     MINOR = 6
-    PATCH = 3
+    PATCH = 4
     BUILD = 0
 
     def self.current
