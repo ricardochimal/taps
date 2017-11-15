@@ -14,5 +14,9 @@ module Taps
     def self.compatible_version
       "#{MAJOR}.#{MINOR}"
     end
+
+    def self.sequel_version
+      '>= 4.0'
+    end
   end
 end

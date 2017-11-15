@@ -1,8 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
+require_relative '../lib/taps/version'
 
-gem 'sequel', '~> 4.0'
+gem 'sequel', Taps::Version.sequel_version
 
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 
