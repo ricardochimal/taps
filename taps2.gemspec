@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'extlib'
   gem.add_runtime_dependency 'rack', '>= 1.0.1'
   gem.add_runtime_dependency 'rest-client', '>= 1.4.0'
-  gem.add_runtime_dependency 'sequel', '~> 4.0'
+  gem.add_runtime_dependency 'sequel', '>= 4.0'
   gem.add_runtime_dependency 'sinatra', '>= 1.4.4'
 
   gem.add_development_dependency 'bacon'
