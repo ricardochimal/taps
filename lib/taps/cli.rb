@@ -66,7 +66,7 @@ module Taps
     end
 
     def version
-      puts Taps.version
+      puts Taps::Version.current
     end
 
     def help

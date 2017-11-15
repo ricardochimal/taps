@@ -31,11 +31,11 @@ describe Taps::Operation do
   end
 
   it 'returns http headers with compression enabled' do
-    @op.http_headers.should == { taps_version: Taps.version, accept_encoding: 'gzip, deflate' }
+    @op.http_headers.should == { taps_version: Taps::Version.current, accept_encoding: 'gzip, deflate' }
   end
 
   it 'returns http headers with compression disabled' do
     @op.stubs(:compression_disabled?).returns(true)
-    @op.http_headers.should == { taps_version: Taps.version, accept_encoding: '' }
+    @op.http_headers.should == { taps_version: Taps::Version.current, accept_encoding: '' }
   end
 end

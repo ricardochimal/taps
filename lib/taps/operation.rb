@@ -162,7 +162,7 @@ module Taps
     end
 
     def http_headers(extra = {})
-      base = { taps_version: Taps.version }
+      base = { taps_version: Taps::Version.current }
       base[:accept_encoding] = if compression_disabled?
                                  ''
                                else
