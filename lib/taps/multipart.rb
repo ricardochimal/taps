@@ -1,5 +1,5 @@
 require 'restclient'
-require 'rack/multipart'
+require 'rack'
 require 'stringio'
 require 'vendor/okjson'
 
