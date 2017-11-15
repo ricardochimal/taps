@@ -31,8 +31,8 @@ module Taps
     before do
       unless request.path_info == '/health'
         major, minor = request.env['HTTP_TAPS_VERSION'].to_s.split('.')
-        unless Taps.compatible_version == "#{major}.#{minor}"
-          halt 417, "Taps >= v#{Taps.compatible_version}.x is required for this server"
+        unless Taps::Version.compatible_version == "#{major}.#{minor}"
+          halt 417, "Taps >= v#{Taps::Version.compatible_version}.x is required for this server"
         end
       end
     end
