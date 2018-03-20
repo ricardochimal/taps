@@ -41,21 +41,16 @@ module OkJson
   def decode(s)
     ts = lex(s)
     v, ts = textparse(ts)
-    if ts.length > 0
-      raise OkJson::ParserError, 'trailing garbage'
-    end
+    raise OkJson::ParserError, 'trailing garbage' unless ts.empty?
     v
   end
-
 
   # Parses a "json text" in the sense of RFC 4627.
   # Returns the parsed value and any trailing tokens.
   # Note: this is almost the same as valparse,
   # except that it does not accept atomic values.
   def textparse(ts)
-    if ts.length < 0
-      raise OkJson::ParserError, 'empty'
-    end
+    raise OkJson::ParserError, 'empty' if ts.length < 0
 
     typ, _, val = ts[0]
     case typ
@@ -65,24 +60,20 @@ module OkJson
     end
   end
 
-
   # Parses a "value" in the sense of RFC 4627.
   # Returns the parsed value and any trailing tokens.
   def valparse(ts)
-    if ts.length < 0
-      raise OkJson::ParserError, 'empty'
-    end
+    raise OkJson::ParserError, 'empty' if ts.length < 0
 
     typ, _, val = ts[0]
     case typ
     when '{' then objparse(ts)
     when '[' then arrparse(ts)
-    when :val,:str then [val, ts[1..-1]]
+    when :val, :str then [val, ts[1..-1]]
     else
       raise OkJson::ParserError, "unexpected #{val.inspect}"
     end
   end
-
 
   # Parses an "object" in the sense of RFC 4627.
   # Returns the parsed value and any trailing tokens.
@@ -90,16 +81,12 @@ module OkJson
     ts = eat('{', ts)
     obj = {}
 
-    if ts[0][0] == '}'
-      return obj, ts[1..-1]
-    end
+    return obj, ts[1..-1] if ts[0][0] == '}'
 
     k, v, ts = pairparse(ts)
     obj[k] = v
 
-    if ts[0][0] == '}'
-      return obj, ts[1..-1]
-    end
+    return obj, ts[1..-1] if ts[0][0] == '}'
 
     loop do
       ts = eat(',', ts)
@@ -107,25 +94,20 @@ module OkJson
       k, v, ts = pairparse(ts)
       obj[k] = v
 
-      if ts[0][0] == '}'
-        return obj, ts[1..-1]
-      end
+      return obj, ts[1..-1] if ts[0][0] == '}'
     end
   end
-
 
   # Parses a "member" in the sense of RFC 4627.
   # Returns the parsed value and any trailing tokens.
   def pairparse(ts)
-    (typ, _, k), ts = ts[0], ts[1..-1]
-    if typ != :str
-      raise OkJson::ParserError, "unexpected #{k.inspect}"
-    end
+    (typ, _, k) = ts[0]
+    ts = ts[1..-1]
+    raise OkJson::ParserError, "unexpected #{k.inspect}" if typ != :str
     ts = eat(':', ts)
     v, ts = valparse(ts)
     [k, v, ts]
   end
-
 
   # Parses an "array" in the sense of RFC 4627.
   # Returns the parsed value and any trailing tokens.
@@ -133,16 +115,12 @@ module OkJson
     ts = eat('[', ts)
     arr = []
 
-    if ts[0][0] == ']'
-      return arr, ts[1..-1]
-    end
+    return arr, ts[1..-1] if ts[0][0] == ']'
 
     v, ts = valparse(ts)
     arr << v
 
-    if ts[0][0] == ']'
-      return arr, ts[1..-1]
-    end
+    return arr, ts[1..-1] if ts[0][0] == ']'
 
     loop do
       ts = eat(',', ts)
@@ -150,12 +128,9 @@ module OkJson
       v, ts = valparse(ts)
       arr << v
 
-      if ts[0][0] == ']'
-        return arr, ts[1..-1]
-      end
+      return arr, ts[1..-1] if ts[0][0] == ']'
     end
   end
-
 
   def eat(typ, ts)
     if ts[0][0] != typ
@@ -164,24 +139,20 @@ module OkJson
     ts[1..-1]
   end
 
-
   # Sans s and returns a list of json tokens,
   # excluding white space (as defined in RFC 4627).
   def lex(s)
     ts = []
-    while s.length > 0
+    until s.empty?
       typ, lexeme, val = tok(s)
-      if typ == nil
-        raise OkJson::ParserError, "invalid character at #{s[0,10].inspect}"
+      if typ.nil?
+        raise OkJson::ParserError, "invalid character at #{s[0, 10].inspect}"
       end
-      if typ != :space
-        ts << [typ, lexeme, val]
-      end
+      ts << [typ, lexeme, val] if typ != :space
       s = s[lexeme.length..-1]
     end
     ts
   end
-
 
   # Scans the first token in s and
   # returns a 3-element list, or nil
@@ -198,35 +169,41 @@ module OkJson
   # it is the lexeme.
   def tok(s)
     case s[0]
-    when ?{  then ['{', s[0,1], s[0,1]]
-    when ?}  then ['}', s[0,1], s[0,1]]
-    when ?:  then [':', s[0,1], s[0,1]]
-    when ?,  then [',', s[0,1], s[0,1]]
-    when ?[  then ['[', s[0,1], s[0,1]]
-    when ?]  then [']', s[0,1], s[0,1]]
-    when ?n  then nulltok(s)
-    when ?t  then truetok(s)
-    when ?f  then falsetok(s)
-    when ?"  then strtok(s)
-    when Spc then [:space, s[0,1], s[0,1]]
-    when ?\t then [:space, s[0,1], s[0,1]]
-    when ?\n then [:space, s[0,1], s[0,1]]
-    when ?\r then [:space, s[0,1], s[0,1]]
-    else          numtok(s)
+    when '{'  then ['{', s[0, 1], s[0, 1]]
+    when '}'  then ['}', s[0, 1], s[0, 1]]
+    when ':'  then [':', s[0, 1], s[0, 1]]
+    when ','  then [',', s[0, 1], s[0, 1]]
+    when '['  then ['[', s[0, 1], s[0, 1]]
+    when ']'  then [']', s[0, 1], s[0, 1]]
+    when 'n'  then nulltok(s)
+    when 't'  then truetok(s)
+    when 'f'  then falsetok(s)
+    when '"'  then strtok(s)
+    when Spc then [:space, s[0, 1], s[0, 1]]
+    when "\t" then [:space, s[0, 1], s[0, 1]]
+    when "\n" then [:space, s[0, 1], s[0, 1]]
+    when "\r" then [:space, s[0, 1], s[0, 1]]
+    else numtok(s)
     end
   end
 
+  def nulltok(s)
+    s[0, 4] == 'null'  && [:val, 'null',  nil]
+  end
 
-  def nulltok(s);  s[0,4] == 'null'  && [:val, 'null',  nil]   end
-  def truetok(s);  s[0,4] == 'true'  && [:val, 'true',  true]  end
-  def falsetok(s); s[0,5] == 'false' && [:val, 'false', false] end
+  def truetok(s)
+    s[0, 4] == 'true'  && [:val, 'true',  true]
+  end
 
+  def falsetok(s)
+    s[0, 5] == 'false' && [:val, 'false', false]
+  end
 
   def numtok(s)
     m = /-?([1-9][0-9]+|[0-9])([.][0-9]+)?([eE][+-]?[0-9]+)?/.match(s)
     if m && m.begin(0) == 0
       if m[3] && !m[2]
-        [:val, m[0], Integer(m[1])*(10**Integer(m[3][1..-1]))]
+        [:val, m[0], Integer(m[1]) * (10**Integer(m[3][1..-1]))]
       elsif m[2]
         [:val, m[0], Float(m[0])]
       else
@@ -235,24 +212,19 @@ module OkJson
     end
   end
 
-
   def strtok(s)
     m = /"([^"\\]|\\["\/\\bfnrt]|\\u[0-9a-fA-F]{4})*"/.match(s)
-    if ! m
-      raise OkJson::ParserError, "invalid string literal at #{abbrev(s)}"
-    end
+    raise OkJson::ParserError, "invalid string literal at #{abbrev(s)}" unless m
     [:str, m[0], unquote(m[0])]
   end
 
-
   def abbrev(s)
-    t = s[0,10]
+    t = s[0, 10]
     p = t['`']
-    t = t[0,p] if p
-    t = t + '...' if t.length < s.length
+    t = t[0, p] if p
+    t += '...' if t.length < s.length
     '`' + t + '`'
   end
-
 
   # Converts a quoted json string literal q into a UTF-8-encoded string.
   # The rules are different than for Ruby, so we cannot use eval.
@@ -260,36 +232,37 @@ module OkJson
   def unquote(q)
     q = q[1...-1]
     a = q.dup # allocate a big enough string
-    r, w = 0, 0
+    r = 0
+    w = 0
     while r < q.length
       c = q[r]
       case true
-      when c == ?\\
+      when c == '\\'
         r += 1
         if r >= q.length
           raise OkJson::ParserError, "string literal ends with a \"\\\": \"#{q}\""
         end
 
         case q[r]
-        when ?",?\\,?/,?'
+        when '"', '\\', '/', "'"
           a[w] = q[r]
           r += 1
           w += 1
-        when ?b,?f,?n,?r,?t
+        when 'b', 'f', 'n', 'r', 't'
           a[w] = Unesc[q[r]]
           r += 1
           w += 1
-        when ?u
+        when 'u'
           r += 1
           uchar = begin
-            hexdec4(q[r,4])
+            hexdec4(q[r, 4])
           rescue RuntimeError => e
-            raise OkJson::ParserError, "invalid escape sequence \\u#{q[r,4]}: #{e}"
+            raise OkJson::ParserError, "invalid escape sequence \\u#{q[r, 4]}: #{e}"
           end
           r += 4
           if surrogate? uchar
-            if q.length >= r+6
-              uchar1 = hexdec4(q[r+2,4])
+            if q.length >= r + 6
+              uchar1 = hexdec4(q[r + 2, 4])
               uchar = subst(uchar, uchar1)
               if uchar != Ucharerr
                 # A valid pair; consume.
@@ -301,7 +274,7 @@ module OkJson
         else
           raise OkJson::ParserError, "invalid escape char #{q[r]} in \"#{q}\""
         end
-      when c == ?", c < Spc
+      when c == '"', c < Spc
         raise OkJson::ParserError, "invalid character in string literal \"#{q}\""
       else
         # Copy anything else byte-for-byte.
@@ -312,50 +285,40 @@ module OkJson
         w += 1
       end
     end
-    a[0,w]
+    a[0, w]
   end
-
 
   def hexdec4(s)
-    if s.length != 4
-      raise OkJson::ParserError, 'short'
-    end
-    (nibble(s[0])<<12) | (nibble(s[1])<<8) | (nibble(s[2])<<4) | nibble(s[3])
+    raise OkJson::ParserError, 'short' if s.length != 4
+    (nibble(s[0]) << 12) | (nibble(s[1]) << 8) | (nibble(s[2]) << 4) | nibble(s[3])
   end
-
 
   def subst(u1, u2)
     if Usurr1 <= u1 && u1 < Usurr2 && Usurr2 <= u2 && u2 < Usurr3
-      return ((u1-Usurr1)<<10) | (u2-Usurr2) + Usurrself
+      return ((u1 - Usurr1) << 10) | (u2 - Usurr2) + Usurrself
     end
-    return Ucharerr
+    Ucharerr
   end
-
 
   def unsubst(u)
-    if u < Usurrself || u > Umax || surrogate?(u)
-      return Ucharerr, Ucharerr
-    end
+    return Ucharerr, Ucharerr if u < Usurrself || u > Umax || surrogate?(u)
     u -= Usurrself
-    [Usurr1 + ((u>>10)&0x3ff), Usurr2 + (u&0x3ff)]
+    [Usurr1 + ((u >> 10) & 0x3ff), Usurr2 + (u & 0x3ff)]
   end
-
 
   def surrogate?(u)
     Usurr1 <= u && u < Usurr3
   end
 
-
   def nibble(c)
     case true
-    when ?0 <= c && c <= ?9 then c.ord - ?0.ord
-    when ?a <= c && c <= ?z then c.ord - ?a.ord + 10
-    when ?A <= c && c <= ?Z then c.ord - ?A.ord + 10
+    when c >= '0' && c <= '9' then c.ord - '0'.ord
+    when c >= 'a' && c <= 'z' then c.ord - 'a'.ord + 10
+    when c >= 'A' && c <= 'Z' then c.ord - 'A'.ord + 10
     else
       raise OkJson::ParserError, "invalid hex code #{c}"
     end
   end
-
 
   # Encodes x into a json text. It may contain only
   # Array, Hash, String, Numeric, true, false, nil.
@@ -371,41 +334,38 @@ module OkJson
     when String  then strenc(x)
     when Numeric then numenc(x)
     when Symbol  then strenc(x.to_s)
-    when true    then "true"
-    when false   then "false"
-    when nil     then "null"
-    else              "null"
+    when true    then 'true'
+    when false   then 'false'
+    when nil     then 'null'
+    else              'null'
     end
   end
 
-
   def objenc(x)
-    '{' + x.map{|k,v| encode(k) + ':' + encode(v)}.join(',') + '}'
+    '{' + x.map { |k, v| encode(k) + ':' + encode(v) }.join(',') + '}'
   end
-
 
   def arrenc(a)
-    '[' + a.map{|x| encode(x)}.join(',') + ']'
+    '[' + a.map { |x| encode(x) }.join(',') + ']'
   end
-
 
   def strenc(s)
     t = StringIO.new
-    t.putc(?")
+    t.putc('"')
     r = 0
     while r < s.length
       case s[r]
-      when ?"  then t.print('\\"')
-      when ?\\ then t.print('\\\\')
-      when ?\b then t.print('\\b')
-      when ?\f then t.print('\\f')
-      when ?\n then t.print('\\n')
-      when ?\r then t.print('\\r')
-      when ?\t then t.print('\\t')
+      when '"'  then t.print('\\"')
+      when '\\' then t.print('\\\\')
+      when "\b" then t.print('\\b')
+      when "\f" then t.print('\\f')
+      when "\n" then t.print('\\n')
+      when "\r" then t.print('\\r')
+      when "\t" then t.print('\\t')
       else
         c = s[r]
         case true
-        when Spc <= c && c <= ?~
+        when Spc <= c && c <= '~'
           t.putc(c)
         when true
           u, size = uchardec(s, r)
@@ -420,32 +380,29 @@ module OkJson
             t.print('\\u')
             hexenc4(t, u2)
           end
-        else
-          # invalid byte; skip it
         end
       end
       r += 1
     end
-    t.putc(?")
+    t.putc('"')
     t.string
   end
 
-
   def hexenc4(t, u)
-    t.putc(Hex[(u>>12)&0xf])
-    t.putc(Hex[(u>>8)&0xf])
-    t.putc(Hex[(u>>4)&0xf])
-    t.putc(Hex[u&0xf])
+    t.putc(Hex[(u >> 12) & 0xf])
+    t.putc(Hex[(u >> 8) & 0xf])
+    t.putc(Hex[(u >> 4) & 0xf])
+    t.putc(Hex[u & 0xf])
   end
-
 
   def numenc(x)
-    if x.nan? || x.infinite?
-      return 'null'
-    end rescue nil
-    "#{x}"
+    begin
+      return 'null' if x.nan? || x.infinite?
+    rescue
+      nil
+    end
+    x.to_s
   end
-
 
   # Decodes unicode character u from UTF-8
   # bytes in string s at position i.
@@ -457,52 +414,49 @@ module OkJson
     c0 = s[i].ord
 
     # 1-byte, 7-bit sequence?
-    if c0 < Utagx
-      return [c0, 1]
-    end
+    return [c0, 1] if c0 < Utagx
 
     # unexpected continuation byte?
     return [Ucharerr, 1] if c0 < Utag2
 
     # need continuation byte
     return [Ucharerr, 1] if n < 2
-    c1 = s[i+1].ord
+    c1 = s[i + 1].ord
     return [Ucharerr, 1] if c1 < Utagx || Utag2 <= c1
 
     # 2-byte, 11-bit sequence?
     if c0 < Utag3
-      u = (c0&Umask2)<<6 | (c1&Umaskx)
+      u = (c0 & Umask2) << 6 | (c1 & Umaskx)
       return [Ucharerr, 1] if u <= Uchar1max
       return [u, 2]
     end
 
     # need second continuation byte
     return [Ucharerr, 1] if n < 3
-    c2 = s[i+2].ord
+    c2 = s[i + 2].ord
     return [Ucharerr, 1] if c2 < Utagx || Utag2 <= c2
 
     # 3-byte, 16-bit sequence?
     if c0 < Utag4
-      u = (c0&Umask3)<<12 | (c1&Umaskx)<<6 | (c2&Umaskx)
+      u = (c0 & Umask3) << 12 | (c1 & Umaskx) << 6 | (c2 & Umaskx)
       return [Ucharerr, 1] if u <= Uchar2max
       return [u, 3]
     end
 
     # need third continuation byte
     return [Ucharerr, 1] if n < 4
-    c3 = s[i+3].ord
+    c3 = s[i + 3].ord
     return [Ucharerr, 1] if c3 < Utagx || Utag2 <= c3
 
     # 4-byte, 21-bit sequence?
     if c0 < Utag5
-      u = (c0&Umask4)<<18 | (c1&Umaskx)<<12 | (c2&Umaskx)<<6 | (c3&Umaskx)
+      u = (c0 & Umask4) << 18 | (c1 & Umaskx) << 12 | (c2 & Umaskx) << 6 | (c3 & Umaskx)
       return [Ucharerr, 1] if u <= Uchar3max
       return [u, 4]
     end
 
-    return [Ucharerr, 1]
+    [Ucharerr, 1]
   end
-
 
   # Encodes unicode character u as UTF-8
   # bytes in string a at position i.
@@ -513,19 +467,19 @@ module OkJson
       a[i] = (u & 0xff).chr
       1
     when u <= Uchar2max
-      a[i+0] = (Utag2 | ((u>>6)&0xff)).chr
-      a[i+1] = (Utagx | (u&Umaskx)).chr
+      a[i + 0] = (Utag2 | ((u >> 6) & 0xff)).chr
+      a[i + 1] = (Utagx | (u & Umaskx)).chr
       2
     when u <= Uchar3max
-      a[i+0] = (Utag3 | ((u>>12)&0xff)).chr
-      a[i+1] = (Utagx | ((u>>6)&Umaskx)).chr
-      a[i+2] = (Utagx | (u&Umaskx)).chr
+      a[i + 0] = (Utag3 | ((u >> 12) & 0xff)).chr
+      a[i + 1] = (Utagx | ((u >> 6) & Umaskx)).chr
+      a[i + 2] = (Utagx | (u & Umaskx)).chr
       3
     else
-      a[i+0] = (Utag4 | ((u>>18)&0xff)).chr
-      a[i+1] = (Utagx | ((u>>12)&Umaskx)).chr
-      a[i+2] = (Utagx | ((u>>6)&Umaskx)).chr
-      a[i+3] = (Utagx | (u&Umaskx)).chr
+      a[i + 0] = (Utag4 | ((u >> 18) & 0xff)).chr
+      a[i + 1] = (Utagx | ((u >> 12) & Umaskx)).chr
+      a[i + 2] = (Utagx | ((u >> 6) & Umaskx)).chr
+      a[i + 3] = (Utagx | (u & Umaskx)).chr
       4
     end
   end
@@ -539,9 +493,9 @@ module OkJson
   Umask2 = 0x1f # 0001 1111
   Umask3 = 0x0f # 0000 1111
   Umask4 = 0x07 # 0000 0111
-  Uchar1max = (1<<7) - 1
-  Uchar2max = (1<<11) - 1
-  Uchar3max = (1<<16) - 1
+  Uchar1max = (1 << 7) - 1
+  Uchar2max = (1 << 11) - 1
+  Uchar3max = (1 << 16) - 1
   Ucharerr = 0xFFFD # unicode "replacement char"
   Usurrself = 0x10000
   Usurr1 = 0xd800
@@ -550,6 +504,6 @@ module OkJson
   Umax = 0x10ffff
 
   Spc = ' '[0]
-  Unesc = {?b=>?\b, ?f=>?\f, ?n=>?\n, ?r=>?\r, ?t=>?\t}
-  Hex = '0123456789abcdef'
+  Unesc = { 'b' => "\b", 'f' => "\f", 'n' => "\n", 'r' => "\r", 't' => "\t" }.freeze
+  Hex = '0123456789abcdef'.freeze
 end

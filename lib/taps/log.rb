@@ -8,7 +8,7 @@ module Taps
       require 'logger'
       log = Logger.new($stderr)
       log.level = Logger::ERROR
-      log.datetime_format = "%Y-%m-%d %H:%M:%S"
+      log.datetime_format = '%Y-%m-%d %H:%M:%S'
       log
     end
   end

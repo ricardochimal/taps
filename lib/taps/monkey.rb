@@ -1,21 +1,22 @@
 class Hash
   def symbolize_keys
-    inject({}) do |options, (key, value)|
-      options[(key.to_sym rescue key) || key] = value
-      options
+    each_with_object({}) do |(key, value), options|
+      options[(begin
+                 key.to_sym
+               rescue
+                 key
+               end) || key] = value
     end
   end
 
   def symbolize_keys!
-    self.replace(symbolize_keys)
+    replace(symbolize_keys)
   end
 
   def symbolize_recursively!
-    self.replace(symbolize_keys)
-    self.each do |k, v|
-      if v.kind_of?(Hash)
-        v.symbolize_keys!
-      end
+    replace(symbolize_keys)
+    each do |_k, v|
+      v.symbolize_keys! if v.is_a?(Hash)
     end
   end
 end
